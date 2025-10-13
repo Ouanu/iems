@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Dashboard - IEMS</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body { background:#f5f7fb; min-height:100vh; }
+    .sidebar { width:240px; background:#ffffff; border-right:1px solid #e9eef6; min-height:100vh; }
+    .brand { padding:20px; font-weight:600; }
+    .nav-link.active { background: linear-gradient(90deg, rgba(99,102,241,0.08), transparent); border-radius:8px; }
+    .content { padding:24px; }
+    .card { border-radius:12px; box-shadow:0 6px 20px rgba(20,30,50,0.04); }
+  </style>
+</head>
+<body>
+  <script>
+    // 登录检测（保留）
+    if (!localStorage.getItem('accessToken')) {
+      window.location.href = '/login.html';
+    }
+  </script>
+
+  <div class="d-flex">
+    <div id="sidebarContainer"></div>
+    <script>
+      // 动态加载 sidebar.html 并做高亮与 logout 绑定
+      (async function loadSidebar(){
+        try {
+          const res = await fetch('/sidebar.html');
+          const html = await res.text();
+          document.getElementById('sidebarContainer').innerHTML = html;
+          // set active link based on pathname
+          const path = location.pathname || '/dashboard.html';
+          document.querySelectorAll('#sidebarContainer .nav-link').forEach(a=>{
+            if (a.dataset && a.dataset.href === path) a.classList.add('active');
+            else a.classList.remove('active');
+          });
+          const logout = document.getElementById('logoutBtn');
+          if (logout) logout.addEventListener('click', () => {
+            localStorage.removeItem('accessToken');
+            localStorage.removeItem('refreshToken');
+            window.location.href = '/login.html';
+          });
+        } catch(e) { console.error('load sidebar failed', e); }
+      })();
+    </script>
+
+    <div class="flex-grow-1 content">
+      <div class="container-fluid">
+        <div class="row mb-4">
+          <div class="col">
+            <h4>仪表盘</h4>
+            <p class="text-muted">欢迎使用 IEMS 管理平台。</p>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col-12 col-lg-6 mb-3">
+            <div class="card p-3">
+              <h6>系统概览</h6>
+              <div class="row">
+                <div class="col">
+                  <div class="text-muted small">活跃用户</div>
+                  <div class="h4">—</div>
+                </div>
+                <div class="col">
+                  <div class="text-muted small">在线设备</div>
+                  <div class="h4">—</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="col-12 col-lg-6 mb-3">
+            <div class="card p-3">
+              <h6>快速操作</h6>
+              <div class="d-flex gap-2 mt-2">
+                <a class="btn btn-outline-primary" href="/operators2.html">管理 Operators</a>
+                <a class="btn btn-outline-secondary" href="#">管理 Apps</a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</body>
+</html>

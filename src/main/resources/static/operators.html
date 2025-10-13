@@ -1,0 +1,1050 @@
+<!doctype html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Operator Management - IEMS</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <style>
+        body {
+            background: #f5f7fb;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            width: 240px;
+            background: #ffffff;
+            border-right: 1px solid #e9eef6;
+            min-height: 100vh;
+        }
+
+        .brand {
+            padding: 20px;
+            font-weight: 600;
+        }
+
+        .nav-link.active {
+            background: linear-gradient(90deg, rgba(99, 102, 241, 0.08), transparent);
+            border-radius: 8px;
+        }
+
+        .content {
+            padding: 24px;
+        }
+
+        .card {
+            border-radius: 12px;
+            box-shadow: 0 6px 20px rgba(20, 30, 50, 0.04);
+        }
+
+        .table-responsive {
+            min-height: 400px;
+        }
+
+        .form-check-input:checked {
+            background-color: #6366f1;
+            border-color: #6366f1;
+        }
+
+        /* 表格列宽与换行：用 nth-child 指定列宽，保证换行生效 */
+        .table {
+            width: 100%;
+            table-layout: auto;
+            /* 使用 auto 让列按内容和指定宽度分配 */
+        }
+
+        .table th,
+        .table td {
+            white-space: normal;
+            /* 允许换行 */
+            overflow-wrap: anywhere;
+            /* 在任意位置换行长字符串 */
+            word-break: break-word;
+            vertical-align: top;
+        }
+
+        /* 按列限制宽度（th 和 td 都适用） */
+        .table thead th:nth-child(1),
+        .table tbody td:nth-child(1) {
+            width: 180px;
+        }
+        /* ID */
+        .table thead th:nth-child(2),
+        .table tbody td:nth-child(2) {
+            width: 130px;
+        }
+        /* 姓名 */
+        .table thead th:nth-child(3),
+        .table tbody td:nth-child(3) {
+            width: 130px;
+        }
+        /* 手机号 */
+        .table thead th:nth-child(4),
+        .table tbody td:nth-child(4) {
+            width: 180px;
+        }
+        /* 邮箱 */
+        .table thead th:nth-child(5),
+        .table tbody td:nth-child(5) {
+            width: 120px;
+        }
+        .table thead th:nth-child(6),
+        .table tbody td:nth-child(6) {
+            width: 80px;
+        }
+        /* 部门 */
+        .table thead th:nth-child(7),
+        .table tbody td:nth-child(7) {
+            width: 80px;
+        }
+        /* 团队 */
+        .table thead th:nth-child(8),
+        .table tbody td:nth-child(8) {
+            width: 80px;
+        }
+        /* 职位 */
+        .table thead th:nth-child(9),
+        .table tbody td:nth-child(9) {
+            width: 80px;
+        }
+        /* 级别 */
+        .table thead th:nth-child(10),
+        .table tbody td:nth-child(10) {
+            width: 90px;
+        }
+        /* 状态 */
+        .table thead th:nth-child(11),
+        .table tbody td:nth-child(11) {
+            width: 180px;
+        }
+        /* 操作 */
+
+        /* 操作按钮布局：每行最多 3 个，居中，超出自动换行 */
+        .table td.col-actions .btn-group {
+            display: grid;
+            grid-template-columns: repeat(5, auto);
+            justify-content: start;
+            align-items: start;
+        }
+
+        .table td.col-actions .btn {
+            white-space: nowrap;
+        }
+
+        /* ----------------- 详情弹窗与内容换行（与 permissions 保持一致） ----------------- */
+        /* 限制 detail modal 最大宽度（在不同断点可调整） */
+        #operatorDetailModal .modal-dialog {
+            max-width: 560px;
+            margin: 1.75rem auto;
+        }
+        /* 保证 modal-body 内文本 / 长字符串换行，不撑破布局 */
+        #operatorDetailModal .modal-content,
+        #operatorDetailModal .modal-body,
+        #operatorDetailModal #operatorDetailBody {
+            white-space: normal !important;
+            word-break: break-word;
+            overflow-wrap: anywhere;
+        }
+        /* detail 中的表格列也限制宽度并允许换行 */
+        #operatorDetailModal table th,
+        #operatorDetailModal table td {
+            max-width: 420px;
+            white-space: normal;
+            word-break: break-word;
+            overflow-wrap: anywhere;
+            vertical-align: top;
+        }
+        @media (max-width: 480px) {
+            #operatorDetailModal .modal-dialog { max-width: 92%; }
+        }
+        /* ----------------------------------------------------------------------- */
+    </style>
+</head>
+
+<body>
+    <div class="d-flex">
+        <div id="sidebarContainer"></div>
+
+        <div class="flex-grow-1 content">
+            <div class="container-fluid">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <h4>Operator 管理</h4>
+                        <p class="text-muted mb-0">创建、查看、更新和管理所有操作员账户。</p>
+                    </div>
+                    <div>
+                        <button class="btn btn-outline-secondary me-2" type="button" data-bs-toggle="collapse"
+                            data-bs-target="#searchCollapse" aria-expanded="false" aria-controls="searchCollapse">
+                            <i class="bi bi-search"></i> 查询
+                        </button>
+                        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#operatorModal"
+                            onclick="prepareCreateForm()">
+                            <i class="bi bi-plus-lg"></i> 创建 Operator
+                        </button>
+                    </div>
+                </div>
+
+                <div class="collapse mb-4" id="searchCollapse">
+                    <div class="card">
+                        <div class="card-body">
+                            <form id="searchForm">
+                                <div class="row g-3 mb-3">
+                                    <div class="col-md-2">
+                                        <label for="searchDisplayName" class="form-label">姓名</label>
+                                        <input type="text" class="form-control" id="searchDisplayName"
+                                            placeholder="输入姓名">
+                                    </div>
+                                    <div class="col-md-2">
+                                        <label for="searchPhone" class="form-label">手机号</label>
+                                        <input type="text" class="form-control" id="searchPhone" placeholder="输入手机号">
+                                    </div>
+                                    <div class="col-md-2">
+                                        <label for="searchEmail" class="form-label">邮箱</label>
+                                        <input type="text" class="form-control" id="searchEmail" placeholder="输入邮箱">
+                                    </div>
+                                    <div class="col-md-2">
+                                        <label for="searchAccountType" class="form-label">账户类型</label>
+                                        <select class="form-select" id="searchAccountType">
+                                            <option value="" selected>全部</option>
+                                            <option value="Admin">Admin</option>
+                                            <option value="Importance">Importance</option>
+                                            <option value="Standard">Standard</option>
+                                            <option value="Visitor">Visitor</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <label for="searchActive" class="form-label">状态</label>
+                                        <select class="form-select" id="searchActive">
+                                            <option value="" selected>全部</option>
+                                            <option value="true">激活</option>
+                                            <option value="false">禁用</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="row g-3 mb-3">
+                                    <div class="col-md-2">
+                                        <label for="searchDepartment" class="form-label">部门</label>
+                                        <input type="text" class="form-control" id="searchDepartment"
+                                            placeholder="输入部门">
+                                    </div>
+                                    <div class="col-md-2">
+                                        <label for="searchTeam" class="form-label">团队</label>
+                                        <input type="text" class="form-control" id="searchTeam" placeholder="输入团队">
+                                    </div>
+                                    <div class="col-md-2">
+                                        <label for="searchPosition" class="form-label">职位</label>
+                                        <input type="text" class="form-control" id="searchPosition" placeholder="输入职位">
+                                    </div>
+                                    <div class="col-md-2">
+                                        <label for="searchLevel" class="form-label">级别</label>
+                                        <input type="text" class="form-control" id="searchLevel" placeholder="输入级别">
+                                    </div>
+                                </div>
+                                <div class="row g-3 mb-3">
+                                    <div class="col-md-6">
+                                        <div class="form-label">创建时间范围</div>
+                                        <div class="input-group">
+                                            <input type="date" class="form-control" id="searchCreatedAtStart">
+                                            <span class="input-group-text">至</span>
+                                            <input type="date" class="form-control" id="searchCreatedAtEnd">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-label">更新时间范围</div>
+                                        <div class="input-group">
+                                            <input type="date" class="form-control" id="searchUpdatedAtStart">
+                                            <span class="input-group-text">至</span>
+                                            <input type="date" class="form-control" id="searchUpdatedAtEnd">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="d-flex justify-content-end align-items-center">
+                                    <div class="form-check form-switch me-3">
+                                        <input class="form-check-input" type="checkbox" role="switch" id="fuzzySearch"
+                                            aria-checked="false">
+                                        <label class="form-check-label" for="fuzzySearch">模糊查询</label>
+                                    </div>
+                                    <button type="button" class="btn btn-info me-2" onclick="handleSearch()">查询</button>
+                                    <button type="button" class="btn btn-light" onclick="handleReset()">重置</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>姓名</th>
+                                        <th>手机号</th>
+                                        <th>邮箱</th>
+                                        <th>账户类型</th>
+                                        <th>部门</th>
+                                        <th>团队</th>
+                                        <th>职位</th>
+                                        <th>级别</th>
+                                        <th>状态</th>
+                                        <!-- <th>创建时间</th>
+                                        <th>更新时间</th> -->
+                                        <th class="col-actions">操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="operatorsTableBody">
+                    <!-- Data will be loaded here by JavaScript -->
+                </tbody>
+            </table>
+        </div>
+        <nav aria-label="Page navigation">
+            <ul class="pagination justify-content-end" id="pagination">
+                <!-- Pagination will be loaded here -->
+            </ul>
+        </nav>
+    </div>
+</div>
+</div>
+</div>
+
+    <!-- Operator Modal (Create/Edit) -->
+    <div class="modal fade" id="operatorModal" tabindex="-1" aria-labelledby="operatorModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="operatorModalLabel">创建 Operator</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="operatorForm">
+                        <input type="hidden" id="operatorId">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="displayName" class="form-label">姓名</label>
+                                <input type="text" class="form-control" id="displayName" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="phone" class="form-label">手机号</label>
+                                <input type="tel" class="form-control" id="phone" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="email" class="form-label">邮箱</label>
+                                <input type="email" class="form-control" id="email">
+                            </div>
+                            <div class="col-md-6 mb-3" id="password-group">
+                                <label for="password" class="form-label">密码</label>
+                                <input type="password" class="form-control" id="password" minlength="8" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="accountType" class="form-label">账户类型</label>
+                                <select class="form-select" id="accountType" required>
+                                    <option value="Visitor">Visitor</option>
+                                    <option value="Standard">Standard</option>
+                                    <option value="Importance">Importance</option>
+                                    <option value="Admin">Admin</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="department" class="form-label">部门</label>
+                                <input type="text" class="form-control" id="department">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="team" class="form-label">团队</label>
+                                <input type="text" class="form-control" id="team">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="position" class="form-label">职位</label>
+                                <input type="text" class="form-control" id="position">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="level" class="form-label">级别</label>
+                                <input type="text" class="form-control" id="level">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" role="switch" id="active" checked
+                                        aria-checked="true">
+                                    <label class="form-check-label" for="active">激活状态</label>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" onclick="saveOperator()">保存</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reset Password Modal -->
+    <div class="modal fade" id="resetPasswordModal" tabindex="-1" aria-labelledby="resetPasswordModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="resetPasswordModalLabel">重置密码</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="resetPasswordForm">
+                        <input type="hidden" id="resetPasswordOperatorId">
+                        <p>为 <strong id="resetPasswordOperatorName"></strong> 设置新密码:</p>
+                        <div class="mb-3">
+                            <label for="newPassword" class="form-label">新密码</label>
+                            <input type="password" class="form-control" id="newPassword" required minlength="8">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" onclick="submitResetPassword()">确认重置</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Permissions Modal -->
+    <div class="modal fade" id="permissionsModal" tabindex="-1" aria-labelledby="permissionsModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="permissionsModalLabel">管理权限</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="permissionOperatorId">
+                    <p>为 <strong id="permissionOperatorName"></strong> 分配权限:</p>
+                    <div id="permissionsCheckboxes">
+                        <!-- Checkboxes will be loaded here -->
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" onclick="savePermissions()">保存权限</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Operator Detail Modal -->
+    <div class="modal fade" id="operatorDetailModal" tabindex="-1" aria-labelledby="operatorDetailModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-sm">
+             <div class="modal-content">
+                 <div class="modal-header">
+                     <h5 class="modal-title" id="operatorDetailModalLabel">操作员详情</h5>
+                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                 </div>
+                 <div class="modal-body">
+                    <div id="operatorDetailBody" class="small"></div>
+                 </div>
+                 <div class="modal-footer">
+                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
+                 </div>
+             </div>
+         </div>
+     </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const API_BASE = '/api';
+        const accessToken = localStorage.getItem('accessToken');
+        let currentPage = 0;
+        const pageSize = 10;
+        // 声明当前搜索查询对象，避免 ReferenceError
+        let currentSearchQuery = null;
+        // Permission groups and concrete permissions — keep in sync with server-side Permission.java
+        const PERMISSION_GROUPS = {
+            OPERATOR: ['operator:read', 'operator:write', 'operator:delete', 'operator:manage'],
+            DEVICE: ['device:read', 'device:write', 'device:delete', 'device:manage'],
+            APP: ['app:read', 'app:write', 'app:delete', 'app:manage'],
+            ROM: ['rom:read', 'rom:write', 'rom:delete', 'rom:manage'],
+            // AUTH: ['auth:read', 'auth:write', 'auth:delete', 'auth:manage']
+        };
+
+        // Flattened group keys for convenience
+        const ALL_PERMISSION_GROUP_KEYS = Object.keys(PERMISSION_GROUPS);
+
+        // --- Accessibility helpers & centralized JS error handler ---
+        function syncSwitchAria(id) {
+            const el = document.getElementById(id);
+            if (!el) return;
+            el.setAttribute('aria-checked', el.checked ? 'true' : 'false');
+            el.addEventListener('change', (e) => {
+                e.target.setAttribute('aria-checked', e.target.checked ? 'true' : 'false');
+            });
+        }
+
+        function handleJsError(err, ctx) {
+            console.error(ctx ? `${ctx} error:` : 'Error:', err);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            syncSwitchAria('fuzzySearch');
+            syncSwitchAria('active');
+        });
+
+        // --- Authentication & Sidebar ---
+        if (!accessToken) {
+            window.location.href = '/login.html';
+        }
+
+        (async function loadSidebar() {
+            try {
+                const res = await fetch('/sidebar.html');
+                const html = await res.text();
+                document.getElementById('sidebarContainer').innerHTML = html;
+                // Activate current nav link safely. prefer pathname match, fallback to the old selector.
+                const currentPath = window.location.pathname || '/operators.html';
+                const activeSelector = `.nav-link[data-href="${currentPath}"]`;
+                const fallbackSelector = '.nav-link[data-href="/operators2.html"]';
+                const navLink = document.querySelector(activeSelector) || document.querySelector(fallbackSelector);
+                if (navLink) {
+                    navLink.classList.add('active');
+                } else {
+                    console.debug('No sidebar nav link matched:', activeSelector, 'or', fallbackSelector);
+                }
+                document.getElementById('logoutBtn')?.addEventListener('click', async () => {
+                    const at = localStorage.getItem('accessToken') || '';
+                    const rt = localStorage.getItem('refreshToken') || '';
+                    try {
+                        // Use fetch directly to avoid apiFetch's automatic redirect/401 handling
+                        await fetch(`${API_BASE}/auth/logout`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                ...(at ? { 'Authorization': `Bearer ${at}` } : {})
+                            },
+                            body: JSON.stringify({ accessToken: at, refreshToken: rt })
+                        });
+                    } catch (err) {
+                        // best-effort: log but proceed to clear tokens and redirect
+                        handleJsError(err, 'logout');
+                    } finally {
+                        localStorage.removeItem('accessToken');
+                        localStorage.removeItem('refreshToken');
+                        window.location.href = '/login.html';
+                    }
+                });
+            } catch (e) {
+                handleJsError(e, 'loadSidebar');
+            }
+        })();
+
+        // --- Token refresh helpers ---
+        let refreshPromise = null;
+
+        function getAccessToken() {
+            return localStorage.getItem('accessToken') || '';
+        }
+
+        async function refreshAccessToken() {
+            // 如果已有正在进行的刷新，复用它（避免并发刷新）
+            if (refreshPromise) return refreshPromise;
+            refreshPromise = (async () => {
+                const rt = localStorage.getItem('refreshToken');
+                if (!rt) throw new Error('No refresh token');
+
+                const res = await fetch(`${API_BASE}/auth/refresh`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ refreshToken: rt })
+                });
+
+                if (!res.ok) {
+                    // 清理 tokens 并抛出，调用方会处理跳转到登录
+                    localStorage.removeItem('accessToken');
+                    localStorage.removeItem('refreshToken');
+                    throw new Error('Refresh token invalid');
+                }
+
+                const data = await res.json();
+                if (!data || !data.accessToken) {
+                    throw new Error('Invalid refresh response');
+                }
+
+                // 更新本地存储（如果后端返回了新的 refreshToken 一并替换）
+                localStorage.setItem('accessToken', data.accessToken);
+                if (data.refreshToken) {
+                    localStorage.setItem('refreshToken', data.refreshToken);
+                }
+                return data.accessToken;
+            })().finally(() => { refreshPromise = null; });
+
+            return refreshPromise;
+        }
+
+        // --- API Helper with refresh-on-401 and retry ---
+        async function apiFetch(url, options = {}) {
+            // merge headers each time so we always use latest token
+            const baseHeaders = {
+                'Content-Type': 'application/json',
+                ...(getAccessToken() ? { 'Authorization': `Bearer ${getAccessToken()}` } : {})
+            };
+            const merged = { ...options, headers: { ...baseHeaders, ...(options.headers || {}) } };
+
+            // perform request
+            let response = await fetch(url, merged);
+
+            // If unauthorized, try to refresh once and retry the original request
+            if (response.status === 401) {
+                try {
+                    await refreshAccessToken(); // may throw
+                    // rebuild headers with new token and retry once
+                    const retryHeaders = {
+                        'Content-Type': 'application/json',
+                        ...(getAccessToken() ? { 'Authorization': `Bearer ${getAccessToken()}` } : {})
+                    };
+                    response = await fetch(url, { ...options, headers: { ...retryHeaders, ...(options.headers || {}) } });
+                } catch (refreshErr) {
+                    // 刷新失败 -> 强制跳转到登录页
+                    handleJsError(refreshErr, 'refreshAccessToken');
+                    alert('会话已过期，请重新登录。');
+                    window.location.href = '/login.html';
+                    throw refreshErr;
+                }
+            }
+
+            const text = await response.text();
+
+            if (!response.ok) {
+                // 仍然不是 OK，抛出以便上层捕获并处理
+                throw new Error(text || `HTTP error! status: ${response.status}`);
+            }
+
+            const contentType = response.headers.get("content-type");
+            if (contentType && contentType.indexOf("application/json") !== -1) {
+                try {
+                    return JSON.parse(text);
+                } catch (e) {
+                    handleJsError(e, 'apiFetch.parseJson');
+                    return text;
+                }
+            }
+            return text;
+        }
+
+        // --- Date Time Helpers ---
+        function formatDateTime(isoString) {
+            if (!isoString) return '-';
+            try {
+                const date = new Date(isoString);
+                if (isNaN(date)) return isoString; // Return original if invalid
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const day = String(date.getDate()).padStart(2, '0');
+                const hours = String(date.getHours()).padStart(2, '0');
+                const minutes = String(date.getMinutes()).padStart(2, '0');
+                const seconds = String(date.getSeconds()).padStart(2, '0');
+                return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+            } catch (e) {
+                console.error('formatDateTime error:', e);
+                return isoString; // Fallback
+            }
+        }
+
+        function toUtcStartOfDay(dateString) {
+            if (!dateString) return null;
+            return `${dateString}T00:00:00.000Z`;
+        }
+
+        function toUtcEndOfDay(dateString) {
+            if (!dateString) return null;
+            return `${dateString}T23:59:59.999Z`;
+        }
+
+
+        // --- Search and Reset ---
+        function handleSearch() {
+            const isFuzzy = document.getElementById('fuzzySearch').checked;
+
+            const getVal = id => document.getElementById(id).value.trim();
+
+            const displayName = getVal('searchDisplayName');
+            const phone = getVal('searchPhone');
+            const email = getVal('searchEmail');
+            const department = getVal('searchDepartment');
+            const team = getVal('searchTeam');
+            const position = getVal('searchPosition');
+            const accountType = getVal('searchAccountType');
+            const level = getVal('searchLevel');
+            const active = getVal('searchActive');
+
+            currentSearchQuery = {};
+
+            const addQuery = (field, value) => {
+                if (value) {
+                    const key = isFuzzy ? `${field}Like` : field;
+                    const val = isFuzzy ? `%${value}%` : value;
+                    currentSearchQuery[key] = val;
+                }
+            };
+
+            addQuery('displayName', displayName);
+            addQuery('phone', phone);
+            addQuery('email', email);
+            addQuery('department', department);
+            addQuery('team', team);
+            addQuery('position', position);
+            addQuery('accountType', accountType);
+            addQuery('level', level);
+
+            if (active) {
+                currentSearchQuery.active = active === 'true';
+            }
+
+            currentSearchQuery.createdAtStart = toUtcStartOfDay(getVal('searchCreatedAtStart'));
+            currentSearchQuery.createdAtEnd = toUtcEndOfDay(getVal('searchCreatedAtEnd'));
+            currentSearchQuery.updatedAtStart = toUtcStartOfDay(getVal('searchUpdatedAtStart'));
+            currentSearchQuery.updatedAtEnd = toUtcEndOfDay(getVal('searchUpdatedAtEnd'));
+
+            // Clean up null values from the query object
+            Object.keys(currentSearchQuery).forEach(key => {
+                if (currentSearchQuery[key] === null) {
+                    delete currentSearchQuery[key];
+                }
+            });
+
+            // If query is empty, treat it as a reset
+            if (Object.keys(currentSearchQuery).length === 0) {
+                currentSearchQuery = null;
+            }
+
+            fetchOperators(0); // Start search from the first page
+        }
+
+        function handleReset() {
+            document.getElementById('searchForm').reset();
+            currentSearchQuery = null;
+            fetchOperators(0);
+        }
+
+
+        // --- Operator Functions ---
+        async function fetchOperators(page = 0) {
+            currentPage = page;
+            const offset = page * pageSize;
+            const queryLimit = pageSize + 1; // Fetch one extra item to check for the next page
+
+            let url = `${API_BASE}/admin/operators?offset=${offset}&limit=${queryLimit}`;
+            let options = { method: 'GET' };
+
+            // If there is a search query, use the POST query endpoint
+            if (currentSearchQuery && Object.keys(currentSearchQuery).length > 0) {
+                url = `${API_BASE}/admin/operators/query`;
+                options = {
+                    method: 'POST',
+                    body: JSON.stringify({ ...currentSearchQuery, offset, limit: queryLimit })
+                };
+            }
+
+            try {
+                const operators = await apiFetch(url, options);
+                const hasNextPage = operators.length > pageSize;
+                const itemsToDisplay = operators.slice(0, pageSize);
+
+                const tableBody = document.getElementById('operatorsTableBody');
+                tableBody.innerHTML = '';
+                if (!itemsToDisplay || itemsToDisplay.length === 0) {
+                    tableBody.innerHTML = '<tr><td colspan="13" class="text-center">没有找到数据</td></tr>';
+                    setupPagination(false); // Clear pagination if no results
+                    return;
+                }
+                // <td>${formatDateTime(op.createdAt)}</td>
+            //   <td>${formatDateTime(op.updatedAt)}</td>
+
+            //   <td>${op.accountType || '-'}</td>
+                itemsToDisplay.forEach(op => {
+                    const row = `
+            <tr>
+              <td>${op.id}</td>
+              <td>${op.displayName}</td>
+              <td>${op.phone}</td>
+              <td>${op.email}</td>
+              <td>${op.accountType || '-'}</td>
+              <td>${op.department || '-'}</td>
+              <td>${op.team || '-'}</td>
+              <td>${op.position || '-'}</td>
+              <td>${op.level || '-'}</td>
+              <td><span class="badge ${op.active ? 'bg-success' : 'bg-secondary'}">${op.active ? '激活' : '禁用'}</span></td>
+
+              <td class="col-actions">
+                <div class="btn-group">
+                   <button class="btn btn-sm btn-outline-info" onclick='showOperatorDetails("${op.id}")' title="详情"><i class="bi bi-eye"></i></button>
+                    <button class="btn btn-sm btn-outline-secondary" onclick='managePermissions("${op.id}", "${op.displayName}")' title="管理权限"><i class="bi bi-shield-lock"></i></button>
+                    <button class="btn btn-sm btn-outline-primary" onclick='prepareEditForm(${JSON.stringify(op)})' title="编辑"><i class="bi bi-pencil"></i></button>
+                    <button class="btn btn-sm btn-outline-info" onclick='prepareResetPassword("${op.id}", "${op.displayName}")' title="重置密码"><i class="bi bi-key"></i></button>
+                    <button class="btn btn-sm btn-outline-danger" onclick="deleteOperator('${op.id}')" title="删除"><i class="bi bi-trash"></i></button>
+                </div>
+              </td>
+            </tr>`;
+                    tableBody.insertAdjacentHTML('beforeend', row);
+                });
+                setupPagination(hasNextPage);
+            } catch (error) {
+                handleJsError(error, 'fetchOperators');
+                alert(`加载操作员失败: ${error && error.message ? error.message : '未知错误'}`);
+            }
+        }
+
+        function prepareCreateForm() {
+            document.getElementById('operatorModalLabel').textContent = '创建 Operator';
+            document.getElementById('operatorForm').reset();
+            document.getElementById('operatorId').value = '';
+            document.getElementById('password-group').style.display = 'block';
+            document.getElementById('password').required = true;
+            document.getElementById('active').checked = true;
+            document.getElementById('accountType').value = 'Visitor'; // Set default value
+        }
+
+        function prepareEditForm(operator) {
+            document.getElementById('operatorModalLabel').textContent = '编辑 Operator';
+            document.getElementById('operatorForm').reset();
+            document.getElementById('operatorId').value = operator.id;
+            document.getElementById('displayName').value = operator.displayName;
+            document.getElementById('phone').value = operator.phone;
+            document.getElementById('email').value = operator.email;
+            document.getElementById('accountType').value = operator.accountType;
+            document.getElementById('department').value = operator.department;
+            document.getElementById('team').value = operator.team;
+            document.getElementById('position').value = operator.position;
+            document.getElementById('level').value = operator.level;
+            document.getElementById('active').checked = operator.active;
+            document.getElementById('password-group').style.display = 'none';
+            document.getElementById('password').required = false;
+            new bootstrap.Modal(document.getElementById('operatorModal')).show();
+        }
+
+        async function saveOperator() {
+            const id = document.getElementById('operatorId').value;
+            const isEdit = !!id;
+            const url = isEdit ? `${API_BASE}/admin/operators/${id}` : `${API_BASE}/admin/operators`;
+            const method = isEdit ? 'PUT' : 'POST';
+
+            const body = {
+                displayName: document.getElementById('displayName').value,
+                phone: document.getElementById('phone').value,
+                email: document.getElementById('email').value,
+                accountType: document.getElementById('accountType').value,
+                department: document.getElementById('department').value,
+                team: document.getElementById('team').value,
+                position: document.getElementById('position').value,
+                level: document.getElementById('level').value,
+                active: document.getElementById('active').checked,
+            };
+
+            if (!isEdit) {
+                body.password = document.getElementById('password').value;
+            }
+
+            try {
+                const result = await apiFetch(url, { method, body: JSON.stringify(body) });
+
+                if (!isEdit) {
+                    // After creating operator, create default permission (use lowercase group token "auth")
+                    if (typeof result === 'string') {
+                        const newOperatorIdMatch = result.match(/ID: (\d+)/);
+                        if (newOperatorIdMatch && newOperatorIdMatch[1]) {
+                            const newOperatorId = newOperatorIdMatch[1];
+                            await createDefaultPermission(newOperatorId);
+                        }
+                    }
+                }
+
+                alert(`操作员已${isEdit ? '更新' : '创建'}。`);
+                bootstrap.Modal.getInstance(document.getElementById('operatorModal')).hide();
+                fetchOperators(currentPage);
+            } catch (error) {
+                handleJsError(error, 'saveOperator');
+                alert(`保存失败: ${error && error.message ? error.message : '未知错误'}`);
+            }
+        }
+
+        async function deleteOperator(id) {
+            if (!confirm(`确定要删除 ID 为 ${id} 的操作员吗？此操作不可逆。`)) return;
+            try {
+                await apiFetch(`${API_BASE}/admin/operators/${id}`, { method: 'DELETE' });
+                alert('操作员已删除。');
+                fetchOperators(currentPage);
+            } catch (error) {
+                handleJsError(error, 'deleteOperator');
+                alert(`删除失败: ${error && error.message ? error.message : '未知错误'}`);
+            }
+        }
+
+        function prepareResetPassword(id, name) {
+            document.getElementById('resetPasswordForm').reset();
+            document.getElementById('resetPasswordOperatorId').value = id;
+            document.getElementById('resetPasswordOperatorName').textContent = name;
+            new bootstrap.Modal(document.getElementById('resetPasswordModal')).show();
+        }
+
+        async function submitResetPassword() {
+            const id = document.getElementById('resetPasswordOperatorId').value;
+            const newPassword = document.getElementById('newPassword').value;
+            if (newPassword.length < 8) {
+                alert('密码长度不能少于8位。');
+                return;
+            }
+            try {
+                await apiFetch(`${API_BASE}/operators/${id}/password/reset`, {
+                    method: 'POST',
+                    body: JSON.stringify({ id: parseInt(id), newPassword })
+                });
+                alert('密码重置成功。');
+                bootstrap.Modal.getInstance(document.getElementById('resetPasswordModal')).hide();
+            } catch (error) {
+                handleJsError(error, 'submitResetPassword');
+                alert(`重置密码失败: ${error && error.message ? error.message : '未知错误'}`);
+            }
+        }
+
+        // --- Permission Functions ---
+        async function createDefaultPermission(operatorId) {
+            try {
+                // Default permission group is AUTH (use lowercase group token)
+                await apiFetch(`${API_BASE}/admin/permissions?operatorId=${operatorId}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify("auth")
+                });
+                console.log(`Default permission created for operator ${operatorId}`);
+            } catch (error) {
+                handleJsError(error, `createDefaultPermission operatorId=${operatorId}`);
+                // do not block user creation on permission failure
+                console.warn(`为新用户创建默认权限失败: ${error && error.message ? error.message : '未知错误'}`);
+            }
+        }
+
+        function humanLabel(perm) {
+            // simple prettifier: "operator:read" => "Operator · Read"
+            const parts = perm.split(':');
+            if (parts.length === 1) return perm;
+            const group = parts[0].charAt(0).toUpperCase() + parts[0].slice(1);
+            const action = parts[1].split('.').join(' ').split('_').map(s => s.charAt(0).toUpperCase() + s.slice(1)).join(' ');
+            return `${group} · ${action}`;
+        }
+
+        async function managePermissions(operatorId, operatorName) {
+            document.getElementById('permissionOperatorId').value = operatorId;
+            document.getElementById('permissionOperatorName').textContent = operatorName;
+
+            const checkboxesContainer = document.getElementById('permissionsCheckboxes');
+            checkboxesContainer.innerHTML = '加载中...';
+
+            const modal = new bootstrap.Modal(document.getElementById('permissionsModal'));
+            modal.show();
+
+            try {
+                const response = await apiFetch(`${API_BASE}/admin/permissions/query?limit=1&offset=0&operatorId=${operatorId}`);
+                const currentPermission = response[0];
+                // Normalize current permissions to set for easy lookup
+                const activePermissions = (currentPermission && currentPermission.permissions)
+                    ? currentPermission.permissions.split(',').map(p => p.trim().toLowerCase()).filter(Boolean)
+                    : [];
+
+                checkboxesContainer.innerHTML = '';
+                // Render grouped checkboxes
+                ALL_PERMISSION_GROUP_KEYS.forEach(groupKey => {
+                    const perms = PERMISSION_GROUPS[groupKey];
+                    const groupId = `perm-group-${groupKey}`;
+                    let groupHtml = `<div class="mb-3"><strong>${groupKey}</strong><div class="ps-3" id="${groupId}">`;
+                    perms.forEach(perm => {
+                        const checked = activePermissions.includes(perm.toLowerCase()) ? 'checked' : '';
+                        groupHtml += `
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="${perm}" id="perm-${perm.replace(/[:/]/g, '_')}" ${checked}>
+                                <label class="form-check-label" for="perm-${perm.replace(/[:/]/g, '_')}">${humanLabel(perm)}</label>
+                            </div>
+                        `;
+                    });
+                    groupHtml += `</div></div>`;
+                    checkboxesContainer.insertAdjacentHTML('beforeend', groupHtml);
+                });
+            } catch (error) {
+                handleJsError(error, 'managePermissions');
+                checkboxesContainer.innerHTML = `<div class="alert alert-danger">加载权限失败: ${error && error.message ? error.message : '未知错误'}</div>`;
+            }
+        }
+
+        async function savePermissions() {
+            const operatorId = document.getElementById('permissionOperatorId').value;
+            const checkedBoxes = Array.from(document.querySelectorAll('#permissionsCheckboxes input:checked'));
+            const selectedPermissions = checkedBoxes.map(cb => cb.value.toLowerCase());
+
+            // If nothing selected, default to 'auth' (minimal)
+            let permissionToSet = selectedPermissions.length > 0 ? selectedPermissions.join(',') : "auth";
+
+            try {
+                // send comma separated specific permissions (lowercase)
+                await apiFetch(`${API_BASE}/admin/permissions/${operatorId}`, {
+                    method: 'PUT',
+                    body: JSON.stringify(permissionToSet)
+                });
+                alert('权限更新成功。');
+                bootstrap.Modal.getInstance(document.getElementById('permissionsModal')).hide();
+            } catch (error) {
+                handleJsError(error, 'savePermissions');
+                alert(`保存权限失败: ${error && error.message ? error.message : '未知错误'}`);
+            }
+        }
+
+        // Show operator details modal (fetch full info)
+        async function showOperatorDetails(operatorId) {
+            const modalEl = document.getElementById('operatorDetailModal');
+            const bodyEl = document.getElementById('operatorDetailBody');
+            bodyEl.innerHTML = '加载中...';
+            const modal = new bootstrap.Modal(modalEl);
+            modal.show();
+            try {
+                const op = await apiFetch(`${API_BASE}/admin/operators/${encodeURIComponent(operatorId)}`);
+                // 使用 permissions 页面一致的展示样式：每行一个 <div><strong>标签</strong> 值</div>
+                bodyEl.innerHTML = `
+                    <div><strong>ID:</strong> ${op.id ?? '-'}</div>
+                    <div><strong>UUID:</strong> ${op.uuid ?? '-'}</div>
+                    <div><strong>姓名:</strong> ${op.displayName ?? '-'}</div>
+                    <div><strong>手机号:</strong> ${op.phone ?? '-'}</div>
+                    <div><strong>邮箱:</strong> ${op.email ?? '-'}</div>
+                    <div><strong>账户类型:</strong> ${op.accountType ?? '-'}</div>
+                    <div><strong>部门:</strong> ${op.department ?? '-'}</div>
+                    <div><strong>团队:</strong> ${op.team ?? '-'}</div>
+                    <div><strong>职位:</strong> ${op.position ?? '-'}</div>
+                    <div><strong>级别:</strong> ${op.level ?? '-'}</div>
+                    <div><strong>激活:</strong> ${op.active ? '是' : '否'}</div>
+                    <div><strong>创建时间:</strong> ${formatDateTime(op.createdAt)}</div>
+                    <div><strong>更新时间:</strong> ${formatDateTime(op.updatedAt)}</div>
+                `;
+            } catch (err) {
+                console.error('Failed to load operator detail:', err);
+                bodyEl.innerHTML = `<div class="text-danger">加载失败: ${err.message || err}</div>`;
+            }
+        }
+
+        // --- Pagination ---
+        function setupPagination(hasNextPage) {
+            const pagination = document.getElementById('pagination');
+            pagination.innerHTML = `
+                <li class="page-item ${currentPage === 0 ? 'disabled' : ''}">
+                    <a class="page-link" href="#" onclick="event.preventDefault(); fetchOperators(${currentPage - 1})">上一页</a>
+                </li>
+                <li class="page-item active"><a class="page-link" href="#">${currentPage + 1}</a></li>
+                <li class="page-item ${!hasNextPage ? 'disabled' : ''}">
+                    <a class="page-link" href="#" onclick="event.preventDefault(); fetchOperators(${currentPage + 1})">下一页</a>
+                </li>
+            `;
+        }
+
+        // --- Initial Load ---
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchOperators(0);
+        });
+    </script>
+    </div>
+</body>
+
+</html>

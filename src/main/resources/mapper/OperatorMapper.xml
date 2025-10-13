@@ -1,0 +1,206 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="dev.ouanu.iems.mapper.OperatorMapper">
+
+    <resultMap id="OperatorResultMap" type="dev.ouanu.iems.entity.Operator">
+        <id property="id" column="id" javaType="long"/>
+        <result property="uuid" column="uuid"/>
+        <result property="passwordHash" column="password_hash"/>
+        <result property="displayName" column="display_name"/>
+        <result property="phone" column="phone"/>
+        <result property="email" column="email"/>
+        <result property="accountType" column="account_type"/>
+        <result property="department" column="department"/>
+        <result property="team" column="team"/>
+        <result property="position" column="position"/>
+        <result property="level" column="level"/>
+        <result property="active" column="active" javaType="java.lang.Boolean"/>
+        <result property="createdAt" column="created_at" javaType="java.time.Instant"/>
+        <result property="updatedAt" column="updated_at" javaType="java.time.Instant"/>
+    </resultMap>
+
+    <sql id="baseColumns">
+        id, uuid, password_hash, display_name, phone, email, account_type, department, team, position, level, active, created_at, updated_at
+    </sql>
+
+    <select id="selectById" resultMap="OperatorResultMap" parameterType="long">
+        SELECT <include refid="baseColumns"/> FROM operators WHERE id = #{id}
+    </select>
+
+    <select id="selectByUuid" resultMap="OperatorResultMap" parameterType="string">
+        SELECT <include refid="baseColumns"/> FROM operators WHERE uuid = #{uuid}
+    </select>
+
+    <select id="selectByEmail" resultMap="OperatorResultMap" parameterType="string">
+        SELECT <include refid="baseColumns"/> FROM operators WHERE email = #{email}
+    </select>
+
+    <select id="selectByPhone" resultMap="OperatorResultMap" parameterType="string">
+        SELECT <include refid="baseColumns"/> FROM operators WHERE phone = #{phone}
+    </select>
+
+    <insert id="insert" parameterType="dev.ouanu.iems.entity.Operator" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO operators (id, uuid, password_hash, display_name, phone, email, account_type, department, team, position, level, active, created_at, updated_at)
+        VALUES (#{id}, #{uuid}, #{passwordHash}, #{displayName}, #{phone}, #{email}, #{accountType}, #{department}, #{team}, #{position}, #{level}, #{active}, NOW(), NOW())
+    </insert>
+
+    <update id="update" parameterType="dev.ouanu.iems.entity.Operator">
+        UPDATE operators
+        SET password_hash = #{passwordHash},
+            display_name = #{displayName},
+            phone = #{phone},
+            email = #{email},
+            account_type = #{accountType},
+            department = #{department},
+            team = #{team},
+            position = #{position},
+            level = #{level},
+            active = #{active},
+            updated_at = NOW()
+        WHERE id = #{id}
+    </update>
+
+    <select id="list" resultMap="OperatorResultMap" parameterType="map">
+        SELECT <include refid="baseColumns"/> FROM operators
+        <if test="limit != null">
+            LIMIT #{limit}
+        </if>
+        <if test="offset != null">
+            OFFSET #{offset}
+        </if>
+    </select>
+
+    <select id="query" resultMap="OperatorResultMap" parameterType="map">
+        SELECT <include refid="baseColumns"/> FROM operators
+        <where>
+            <!-- 精确匹配 -->
+            <if test="id != null">
+                AND id = #{id}
+            </if>
+            <if test="uuid != null">
+                AND uuid = #{uuid}
+            </if>
+            <if test="displayName != null">
+                AND display_name = #{displayName}
+            </if>
+            <if test="phone != null">
+                AND phone = #{phone}
+            </if>
+            <if test="email != null">
+                AND email = #{email}
+            </if>
+            <if test="accountType != null">
+                AND account_type = #{accountType}
+            </if>
+            <if test="department != null">
+                AND department = #{department}
+            </if>
+            <if test="team != null">
+                AND team = #{team}
+            </if>
+            <if test="position != null">
+                AND position = #{position}
+            </if>
+            <if test="level != null">
+                AND level = #{level}
+            </if>
+            <if test="active != null">
+                AND active = #{active}
+            </if>
+
+            <!-- 模糊匹配（不区分大小写），前端应传入不含/含 % 均可 -->
+            <if test="uuidLike != null">
+                AND LOWER(uuid) LIKE LOWER(#{uuidLike})
+            </if>
+            <if test="displayNameLike != null">
+                AND LOWER(display_name) LIKE LOWER(#{displayNameLike})
+            </if>
+            <if test="phoneLike != null">
+                AND LOWER(phone) LIKE LOWER(#{phoneLike})
+            </if>
+            <if test="emailLike != null">
+                AND LOWER(email) LIKE LOWER(#{emailLike})
+            </if>
+            <if test="accountTypeLike != null">
+                AND LOWER(account_type) LIKE LOWER(#{accountTypeLike})
+            </if>
+            <if test="departmentLike != null">
+                AND LOWER(department) LIKE LOWER(#{departmentLike})
+            </if>
+            <if test="teamLike != null">
+                AND LOWER(team) LIKE LOWER(#{teamLike})
+            </if>
+            <if test="positionLike != null">
+                AND LOWER(position) LIKE LOWER(#{positionLike})
+            </if>
+            <if test="levelLike != null">
+                AND LOWER(level) LIKE LOWER(#{levelLike})
+            </if>
+
+            <!-- 时间范围 -->
+            <if test="createdAtStart != null">
+                AND created_at &gt;= CONVERT_TZ(#{createdAtStart}, '+08:00', @@session.time_zone)
+            </if>
+            <if test="createdAtEnd != null">
+                AND created_at &lt;= CONVERT_TZ(#{createdAtEnd}, '+08:00', @@session.time_zone)
+            </if>
+            <if test="updatedAtStart != null">
+                AND updated_at &gt;= CONVERT_TZ(#{updatedAtStart}, '+08:00', @@session.time_zone)
+            </if>
+            <if test="updatedAtEnd != null">
+                AND updated_at &lt;= CONVERT_TZ(#{updatedAtEnd}, '+08:00', @@session.time_zone)
+            </if>
+        </where>
+
+        ORDER BY created_at DESC
+
+        <if test="limit != null">
+            LIMIT #{limit}
+        </if>
+        <if test="offset != null">
+            OFFSET #{offset}
+        </if>
+    </select>
+
+    <select id="count" resultType="long">
+        SELECT COUNT(1) FROM operators
+    </select>
+    <delete id="deleteById" parameterType="long">
+        DELETE FROM operators WHERE id = #{id}
+    </delete>
+
+    <!-- existsByPhone --> 
+
+    <select id="existsByPhone" resultType="boolean" parameterType="string">
+        SELECT COUNT(1) FROM operators WHERE phone = #{phone}
+    </select>
+
+    <select id="existsByEmail" resultType="boolean" parameterType="string">
+        SELECT COUNT(1) FROM operators WHERE email = #{email}
+    </select>
+
+    <!-- createTableIfNotExists --> 
+
+    <update id="createTableIfNotExists">
+        CREATE TABLE IF NOT EXISTS operators (
+            id BIGINT NOT NULL AUTO_INCREMENT,
+            uuid VARCHAR(36) NOT NULL,
+            password_hash VARCHAR(255) NOT NULL,
+            display_name VARCHAR(255),
+            phone VARCHAR(64),
+            email VARCHAR(255),
+            account_type VARCHAR(32),
+            department VARCHAR(128),
+            team VARCHAR(128),
+            position VARCHAR(128),
+            level VARCHAR(32),
+            active TINYINT(1) DEFAULT 1,
+            created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            PRIMARY KEY (id),
+            UNIQUE KEY uq_operators_uuid (uuid),
+            UNIQUE KEY uq_operators_phone (phone),
+            UNIQUE KEY uq_operators_email (email)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    </update>    
+</mapper>

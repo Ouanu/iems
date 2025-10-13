@@ -1,0 +1,216 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="dev.ouanu.iems.mapper.DeviceMapper">
+
+    <resultMap id="DeviceResultMap" type="dev.ouanu.iems.entity.Device">
+        <id property="id" column="id"/>
+        <result property="uuid" column="uuid"/>
+        <result property="macAddress" column="mac_address"/>
+        <result property="signatureHash" column="signature_hash"/>
+        <result property="active" column="active" javaType="java.lang.Boolean"/>
+        <result property="locked" column="locked" javaType="java.lang.Boolean"/>
+        <result property="customerId" column="customer_id" javaType="java.lang.Long"/>
+        <result property="customerGroup" column="customer_group"/>
+        <result property="model" column="model"/>
+        <result property="brand" column="brand"/>
+        <result property="serialno" column="serialno"/>
+        <result property="androidVersion" column="android_version"/>
+        <result property="appVersion" column="app_version"/>
+        <result property="romVersion" column="rom_version"/>
+        <result property="createdAt" column="created_at" javaType="java.time.Instant"/>
+        <result property="updatedAt" column="updated_at" javaType="java.time.Instant"/>
+    </resultMap>
+    
+    <!-- createTableIfNotExists --> 
+    <update id="createTableIfNotExists">
+        <![CDATA[
+        CREATE TABLE IF NOT EXISTS devices (
+            id BIGINT PRIMARY KEY AUTO_INCREMENT,
+            uuid VARCHAR(128) NOT NULL,
+            mac_address VARCHAR(64),
+            signature_hash VARCHAR(128),
+            active TINYINT(1) DEFAULT 0,
+            locked TINYINT(1) DEFAULT 0,
+            customer_id BIGINT,
+            customer_group VARCHAR(128),
+            model VARCHAR(128),
+            brand VARCHAR(128),
+            serialno VARCHAR(128),
+            android_version VARCHAR(64),
+            app_version VARCHAR(64),
+            rom_version VARCHAR(255),
+            created_at TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            UNIQUE KEY uk_uuid (uuid)
+        );
+        ]]>
+    </update>
+
+    <!-- selectById --> 
+
+    <select id="selectById" resultMap="DeviceResultMap" parameterType="long">
+        SELECT * FROM devices WHERE id = #{id}
+    </select>
+
+
+    <!-- selectByUuid --> 
+
+    <select id="selectByUuid" resultMap="DeviceResultMap" parameterType="string">
+        SELECT * FROM devices WHERE uuid = #{uuid}
+    </select>
+
+
+    <!-- insert --> 
+
+    <insert id="insert" parameterType="dev.ouanu.iems.entity.Device" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO devices (id, uuid, mac_address, signature_hash, active, locked, customer_id, customer_group, model, brand, serialno, android_version, app_version, rom_version, created_at, updated_at)
+        VALUES (#{id}, #{uuid}, #{macAddress}, #{signatureHash}, #{active}, #{locked}, #{customerId}, #{customerGroup}, #{model}, #{brand}, #{serialno}, #{androidVersion}, #{appVersion}, #{romVersion}, NOW(), NOW())
+    </insert>
+
+
+    <!-- update --> 
+
+    <update id="update" parameterType="dev.ouanu.iems.entity.Device">
+        UPDATE devices SET
+            mac_address = #{macAddress},
+            signature_hash = #{signatureHash},
+            active = #{active},
+            locked = #{locked},
+            customer_id = #{customerId},
+            customer_group = #{customerGroup},
+            model = #{model},
+            brand = #{brand},
+            serialno = #{serialno},
+            android_version = #{androidVersion},
+            app_version = #{appVersion},
+            rom_version = #{romVersion},
+            updated_at = NOW()
+        WHERE uuid = #{uuid}
+    </update>
+
+
+    <!-- deleteById --> 
+
+    <delete id="deleteById" parameterType="long">
+        DELETE FROM devices WHERE id = #{id}
+    </delete>
+
+    <!-- list --> 
+
+    <select id="list" resultMap="DeviceResultMap">
+        SELECT * FROM devices
+        <if test="offset != null and limit != null">
+            LIMIT #{limit} OFFSET #{offset}
+        </if>
+    </select>
+
+
+    <!-- query --> 
+
+    <select id="query" resultMap="DeviceResultMap" parameterType="map">
+        SELECT * FROM devices
+        <where>
+            <!-- 精确匹配 -->
+            <if test="uuid != null">
+                AND uuid = #{uuid}
+            </if>
+            <if test="macAddress != null">
+                AND mac_address = #{macAddress}
+            </if>
+            <if test="signatureHash != null">
+                AND signature_hash = #{signatureHash}
+            </if>
+            <if test="active != null">
+                AND active = #{active}
+            </if>
+            <if test="locked != null">
+                AND locked = #{locked}
+            </if>
+            <if test="customerId != null">
+                AND customer_id = #{customerId}
+            </if>
+            <if test="customerGroup != null">
+                AND customer_group = #{customerGroup}
+            </if>
+            <if test="model != null">
+                AND model = #{model}
+            </if>
+            <if test="brand != null">
+                AND brand = #{brand}
+            </if>
+            <if test="serialno != null">
+                AND serialno = #{serialno}
+            </if>
+            <if test="androidVersion != null">
+                AND android_version = #{androidVersion}
+            </if>
+            <if test="appVersion != null">
+                AND app_version = #{appVersion}
+            </if>
+            <if test="romVersion != null">
+                AND rom_version = #{romVersion}
+            </if>
+
+            <!-- 模糊匹配 (前端应传入含 % 的值，例如 %foo%) -->
+            <if test="uuidLike != null">
+                AND uuid LIKE #{uuidLike}
+            </if>
+            <if test="macAddressLike != null">
+                AND mac_address LIKE #{macAddressLike}
+            </if>
+            <if test="signatureHashLike != null">
+                AND signature_hash LIKE #{signatureHashLike}
+            </if>
+            <if test="customerGroupLike != null">
+                AND customer_group LIKE #{customerGroupLike}
+            </if>
+            <if test="modelLike != null">
+                AND model LIKE #{modelLike}
+            </if>
+            <if test="brandLike != null">
+                AND brand LIKE #{brandLike}
+            </if>
+            <if test="serialnoLike != null">
+                AND serialno LIKE #{serialnoLike}
+            </if>
+            <if test="androidVersionLike != null">
+                AND android_version LIKE #{androidVersionLike}
+            </if>
+            <if test="appVersionLike != null">
+                AND app_version LIKE #{appVersionLike}
+            </if>
+            <if test="romVersionLike != null">
+                AND rom_version LIKE #{romVersionLike}
+            </if>
+
+            <!-- 时间范围 -->
+            <if test="createdAtStart != null">
+                AND created_at &gt;= CONVERT_TZ(#{createdAtStart}, '+08:00', @@session.time_zone)
+            </if>
+            <if test="createdAtEnd != null">
+                AND created_at &lt;= CONVERT_TZ(#{createdAtEnd}, '+08:00', @@session.time_zone)
+            </if>
+            <if test="updatedAtStart != null">
+                AND updated_at &gt;= CONVERT_TZ(#{updatedAtStart}, '+08:00', @@session.time_zone)
+            </if>
+            <if test="updatedAtEnd != null">
+                AND updated_at &lt;= CONVERT_TZ(#{updatedAtEnd}, '+08:00', @@session.time_zone)
+            </if>
+        </where>
+        <if test="offset != null and limit != null">
+            LIMIT #{limit} OFFSET #{offset}
+        </if>
+    </select>    
+
+    <!-- count --> 
+
+    <select id="count" resultType="long">
+        SELECT COUNT(1) FROM devices
+    </select>
+
+    <!-- selectByMacAddress --> 
+
+    <select id="selectByMacAddress" resultMap="DeviceResultMap">
+        SELECT * FROM devices WHERE mac_address = #{macAddress}
+    </select>
+</mapper>

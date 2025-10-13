@@ -1,0 +1,15 @@
+jwt:
+  secret: 31HF9kvD16++Td/C11vaLB/d6/IrhjWAk925aPoFcuU=
+  access_expiration: 600000        # milliseconds (15 min)
+  refresh_expiration: 1008000000   # milliseconds (约 11.6 天) — 根据需要调整
+
+# MyBatis 通用配置
+mybatis:
+  mapper-locations: classpath:mapper/*.xml
+  type-aliases-package: dev.ouanu.iems.entity
+
+# 日志级别（可按需覆盖）
+logging:
+  level:
+    root: INFO
+    dev.ouanu.iems: DEBUG

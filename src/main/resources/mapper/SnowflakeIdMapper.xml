@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="dev.ouanu.iems.mapper.SnowflakeIdMapper">
+    
+    <resultMap id="SnowflakeIdResultMap" type="dev.ouanu.iems.entity.SnowflakeId">
+        <id property="id" column="id" javaType="long"/>
+        <result property="type" column="type"/>
+        <result property="node" column="node"/>
+        <result property="createdAt" column="created_at" javaType="java.time.Instant"/>
+    </resultMap>
+
+
+    <!-- createTableIfNotExists --> 
+
+    <update id="createTableIfNotExists">
+        CREATE TABLE IF NOT EXISTS snowflake_ids (
+            id BIGINT PRIMARY KEY,
+            type VARCHAR(50) NOT NULL,
+            node VARCHAR(50) NOT NULL,
+            created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+        );
+    </update>
+
+
+    <!-- insert --> 
+
+    <insert id="insert" parameterType="dev.ouanu.iems.entity.SnowflakeId" >
+        INSERT INTO snowflake_ids (id, type, node, created_at)
+        VALUES (#{id}, #{type}, #{node}, #{createdAt});
+    </insert>
+    
+
+    <!-- selectById --> 
+
+    <select id="selectById" parameterType="long" resultMap="SnowflakeIdResultMap">
+        SELECT * FROM snowflake_ids WHERE id = #{id};
+    </select>    
+</mapper>

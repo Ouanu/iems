@@ -1,0 +1,578 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8" />
+    <title>权限管理 - IEMS</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <style>
+    body { background:#f5f7fb; min-height:100vh; }
+    .sidebar { width:240px; background:#fff; border-right:1px solid #e9eef6; min-height:100vh; position:fixed; }
+    .main { margin-left:260px; padding:24px; }
+    .card { border-radius:12px; box-shadow:0 6px 20px rgba(20,30,50,0.04); }
+
+    .compact .form-control { padding:.28rem .45rem; font-size:.88rem; }
+    .compact .form-select { padding:.28rem .45rem; font-size:.88rem; }
+    .compact .btn { padding:.32rem .5rem; font-size:.86rem;}
+    .compact .form-label { font-size:.85rem; margin-bottom:.25rem; }
+    .compact .card { padding:.6rem; }
+    .compact .w-33 { width: 33%; }
+
+    /* 限制查询表单输入宽度，避免占满整列 */
+    #queryForm .form-control,
+    #queryForm .form-select,
+    #queryForm input.form-control-sm,
+    #queryForm select.form-select {
+      max-width: 200px;    /* 与 operators.html 更接近的宽度 */
+      width: 100%;
+    }
+
+    /* 在极小屏幕上让输入项占满列宽 */
+    @media (max-width: 576px) {
+      #queryForm .form-control,
+      #queryForm .form-select {
+        max-width: none;
+        width: 100%;
+      }
+    }
+
+    .compact .btn-sm {
+      padding: .26rem .42rem;
+      font-size: .82rem;
+      max-width: 100px;
+    }
+
+    /* 限制权限列宽，允许换行并自适应高度 */
+    .table th.col-perms,
+    .table td.col-perms {
+      max-width: 320px;
+      white-space: normal;
+      word-break: break-word;
+      overflow-wrap: anywhere;
+      vertical-align: top;
+    }
+
+    /* 操作列：使用专门类名 col-actions，保证可控对齐 */
+    .table td.col-actions {
+      text-align: start;      /* 居中对齐单元格内容 */
+      vertical-align: middle;
+      width: 160px;            /* 可按需调整 */
+      white-space: normal;
+    }
+
+    .table .btn-group {
+      display: inline-flex;
+      flex-wrap: wrap;        /* 超出时换行 */
+      justify-content: start;/* 按钮左对齐 */
+      align-items: start;
+    }
+    .table .btn-group .btn {
+      white-space: nowrap;    /* 按钮内部不换行 */
+    }
+
+    /* ------------- 新增：限制详情弹窗最大宽度并允许内容换行 ------------- */
+    /* 限制 detail modal 最大宽度（在不同断点可调整） */
+    #detailModal .modal-dialog {
+      max-width: 560px; /* 需要更窄则减小此值 */
+      margin: 1.75rem auto;
+    }
+    /* 保证 modal-body 内文本 / 长字符串换行，不撑破布局 */
+    #detailModal .modal-content,
+    #detailModal .modal-body,
+    #detailModal #detailBody {
+      white-space: normal !important;
+      word-break: break-word;
+      overflow-wrap: anywhere;
+    }
+    /* detail 中的表格列也限制宽度并允许换行 */
+    #detailModal table th,
+    #detailModal table td {
+      max-width: 420px;
+      white-space: normal;
+      word-break: break-word;
+      overflow-wrap: anywhere;
+      vertical-align: top;
+    }
+    /* 在超小屏幕上，使用更窄的 modal */
+    @media (max-width: 480px) {
+      #detailModal .modal-dialog { max-width: 92%; }
+    }
+    /* ------------------------------------------------------------------- */
+  </style>
+</head>
+<body>
+  <script>
+    if (!localStorage.getItem('accessToken')) {
+      window.location.href = '/login.html';
+    }
+  </script>
+  <div id="sidebarContainer"></div>
+  <script>
+    (async function loadSidebar(){
+      try {
+        const res = await fetch('/sidebar.html');
+        const html = await res.text();
+        document.getElementById('sidebarContainer').innerHTML = html;
+        const path = location.pathname || '/permissions.html';
+        document.querySelectorAll('#sidebarContainer .nav-link').forEach(a=>{
+          if (a.dataset && a.dataset.href === path) a.classList.add('active');
+          else a.classList.remove('active');
+        });
+        const logout = document.getElementById('logoutBtn');
+        if (logout) logout.addEventListener('click', () => {
+          localStorage.removeItem('accessToken');
+          localStorage.removeItem('refreshToken');
+          window.location.href = '/login.html';
+        });
+      } catch(e) { console.error('load sidebar failed', e); }
+    })();
+  </script>
+
+  <div class="main">
+    <div class="container-fluid">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4>权限管理</h4>
+        <button class="btn btn-primary" id="createBtn">添加权限</button>
+      </div>
+      <div class="card p-3 mb-3 compact">
+        <form id="queryForm" class="row g-2 align-items-end">
+          <div class="col-12 col-sm-3 col-md-2">
+            <label class="form-label">Entity ID</label>
+            <input name="entityId" class="form-control form-control-sm" />
+          </div>
+          <div class="col-12 col-sm-3 col-md-2">
+            <label class="form-label">权限类型</label>
+            <input name="permissions" class="form-control form-control-sm" placeholder="如 DEVICE/APP/ROM/SUPER_ADMIN" />
+          </div>
+          <div class="col-12" style="margin-top:30px;">
+            <div class="d-flex gap-2">
+              <button id="exactQueryBtn" class="btn btn-outline-primary w-33 btn-sm">精确</button>
+              <button id="fuzzyQueryBtn" class="btn btn-outline-secondary w-33 btn-sm">模糊</button>
+              <button id="resetBtn" class="btn btn-outline-danger w-33 btn-sm">重置</button>
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="card p-3 mb-3">
+        <div class="table-responsive">
+          <table class="table table-hover mb-0">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>权限</th>
+                <th>创建时间</th>
+                <th>更新时间</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody id="listBody"></tbody>
+          </table>
+        </div>
+        <div class="d-flex justify-content-between align-items-center mt-3">
+          <div class="d-flex align-items-center gap-2">
+            <div id="pageInfo" class="form-label"></div>
+            <label for="pageSizeSel" class="form-label">每页</label>
+            <select id="pageSizeSel" class="form-label form-select" style="width:auto;display:inline-block;">
+              <option value="10" selected>10</option>
+              <option value="20">20</option>
+              <option value="50">50</option>
+            </select>
+            <label class="form-label">条</label>
+          </div>
+          <nav>
+            <ul class="pagination mb-0" id="pager"></ul>
+          </nav>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Create Modal -->
+  <div class="modal" tabindex="-1" id="createModal">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">添加权限</h5>
+          <button type="button" class="btn-close" id="closeModal"></button>
+        </div>
+        <div class="modal-body">
+          <form id="createForm" class="row g-2">
+            <div class="col-12">
+              <label class="form-label">Entity ID</label>
+              <input name="entityId" class="form-control" required />
+            </div>
+            <div class="col-12">
+              <label class="form-label">权限类型</label>
+              <select name="permission" class="form-select" required>
+                <option value="DEVICE">DEVICE</option>
+                <option value="APP">APP</option>
+                <option value="ROM">ROM</option>
+                <option value="SUPER_ADMIN">SUPER_ADMIN</option>
+              </select>
+            </div>
+            <div class="col-12">
+              <div id="createMsg" class="text-center small mt-2"></div>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button id="submitCreate" class="btn btn-primary">添加</button>
+          <button id="cancelCreate" class="btn btn-outline-secondary">取消</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Modal -->
+  <div class="modal" tabindex="-1" id="editModal">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">编辑权限</h5>
+          <button type="button" class="btn-close" id="editClose"></button>
+        </div>
+        <div class="modal-body">
+          <form id="editForm" class="row g-2">
+            <input type="hidden" name="entityId" />
+            <div class="col-12">
+              <label class="form-label">权限类型</label>
+              <select name="permission" class="form-select" required>
+                <option value="DEVICE">DEVICE</option>
+                <option value="APP">APP</option>
+                <option value="ROM">ROM</option>
+                <option value="SUPER_ADMIN">SUPER_ADMIN</option>
+              </select>
+            </div>
+            <div class="col-12">
+              <div id="editMsg" class="text-center small mt-2"></div>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button id="submitEdit" class="btn btn-primary">保存</button>
+          <button id="cancelEdit" class="btn btn-outline-secondary">取消</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Detail Modal -->
+  <div class="modal" tabindex="-1" id="detailModal">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h6 class="modal-title">详情</h6>
+          <button type="button" class="btn-close" id="detailClose"></button>
+        </div>
+        <div class="modal-body">
+          <div id="detailBody" class="small"></div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary btn-sm" id="detailOk">关闭</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let offset = 0, limit = 10, totalLoaded = 0, lastQuery = null;
+
+    async function apiFetch(url, opts = {}) {
+      const token = localStorage.getItem('accessToken');
+      opts.headers = opts.headers || {};
+      if (!opts.headers['Content-Type'] && !(opts.body instanceof FormData)) {
+        opts.headers['Content-Type'] = 'application/json';
+      }
+      if (token) opts.headers['Authorization'] = 'Bearer ' + token;
+      const resp = await fetch(url, opts);
+      if (resp.status === 401) {
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('refreshToken');
+        window.location.href = '/login.html';
+        throw new Error('unauthorized');
+      }
+      return resp;
+    }
+
+    async function loadList() {
+      let url = `/api/admin/permissions?offset=${offset}&limit=${limit}`;
+      if (lastQuery && Object.keys(lastQuery).length > 0) {
+        url = `/api/admin/permissions/query?` + new URLSearchParams(Object.assign({}, lastQuery, {offset, limit}));
+      }
+      const resp = await apiFetch(url);
+      const data = await resp.json();
+      renderTable(data);
+      totalLoaded = Array.isArray(data) ? data.length : 0;
+      const hasNextPage = totalLoaded === limit;
+      setupPagination(hasNextPage);
+    }
+
+    // Navigate to a specific page (page is zero-based)
+    function loadListPage(page) {
+      if (page < 0) return;
+      offset = page * limit;
+      loadList();
+    }
+
+    // Use same pagination style as devices: prev - current(page) - next
+    function setupPagination(hasNextPage) {
+      const pager = document.getElementById('pager');
+      const currentPageNum = Math.floor(offset / limit);
+      pager.innerHTML = `
+        <li class="page-item ${currentPageNum === 0 ? 'disabled' : ''}">
+          <a class="page-link" href="#" onclick="event.preventDefault(); loadListPage(${currentPageNum - 1})">上一页</a>
+        </li>
+        <li class="page-item active"><a class="page-link" href="#">${currentPageNum + 1}</a></li>
+        <li class="page-item ${!hasNextPage ? 'disabled' : ''}">
+          <a class="page-link" href="#" onclick="event.preventDefault(); loadListPage(${currentPageNum + 1})">下一页</a>
+        </li>
+      `;
+    }
+
+    function renderTable(data) {
+      const tbody = document.getElementById('listBody');
+      tbody.innerHTML = '';
+      if (!Array.isArray(data) || data.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">暂无数据</td></tr>';
+        return;
+      }
+      for (const row of data) {
+        const entityId = row.id ?? '';
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td class="col-eid">${entityId}</td>
+          <td class="col-perms">${row.permissions ?? ''}</td>
+          <td class="col-created">${row.createdAt ? new Date(row.createdAt).toLocaleString() : ''}</td>
+          <td class="col-updated">${row.updatedAt ? new Date(row.updatedAt).toLocaleString() : ''}</td>
+          <td class="col-actions">
+            <div class="btn-group" role="group" aria-label="actions">
+              <button class="btn btn-sm btn-outline-info btn-detail" data-id="${entityId}" title="详情"><i class="bi bi-eye"></i></button>
+              <button class="btn btn-sm btn-outline-primary btn-edit" data-id="${entityId}" data-perm="${row.permissions ?? ''}" title="编辑"><i class="bi bi-pencil"></i></button>
+              <button class="btn btn-sm btn-outline-danger btn-delete" data-id="${entityId}" title="删除"><i class="bi bi-trash"></i></button>
+            </div>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      }
+
+      tbody.querySelectorAll('.btn-detail').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+          const id = e.currentTarget.dataset.id;
+          if (!id) return;
+          try {
+            const resp = await apiFetch(`/api/admin/permissions/${encodeURIComponent(id)}`);
+            if (!resp.ok) {
+              alert('获取详情失败');
+              return;
+            }
+            const data = await resp.json();
+            const body = document.getElementById('detailBody');
+            body.innerHTML = `
+              <div><strong>Entity ID:</strong> ${data.entityId ?? data.operatorId ?? data.deviceId ?? ''}</div>
+              <div><strong>权限:</strong> ${data.permissions ?? ''}</div>
+              <div><strong>创建时间:</strong> ${data.createdAt ? new Date(data.createdAt).toLocaleString() : ''}</div>
+              <div><strong>更新时间:</strong> ${data.updatedAt ? new Date(data.updatedAt).toLocaleString() : ''}</div>
+            `;
+            const detailModal = document.getElementById('detailModal');
+            detailModal.style.display = 'block';
+            detailModal.classList.add('show');
+          } catch (err) {
+            console.error(err);
+            alert('网络错误');
+          }
+        });
+      });
+
+      tbody.querySelectorAll('.btn-edit').forEach(btn => {
+         btn.addEventListener('click', (e) => {
+           openEditModal(btn.dataset.id, btn.dataset.perm);
+         });
+       });
+       tbody.querySelectorAll('.btn-delete').forEach(btn => {
+         btn.addEventListener('click', async (e) => {
+           if (!confirm('确认删除 Entity ID=' + btn.dataset.id + ' 的权限?')) return;
+           const resp = await apiFetch(`/api/admin/permissions/${btn.dataset.id}`, { method: 'DELETE' });
+           if (!resp.ok) {
+             alert('删除失败');
+             return;
+           }
+           loadList();
+         });
+       });
+     }
+
+    function renderPager() {
+      const pager = document.getElementById('pager');
+      pager.innerHTML = '';
+      const prev = document.createElement('li');
+      prev.className = 'page-item ' + (offset === 0 ? 'disabled' : '');
+      prev.innerHTML = `<a class="page-link" href="#" data-action="prev">上一页</a>`;
+      pager.appendChild(prev);
+
+      const next = document.createElement('li');
+      next.className = 'page-item ' + (totalLoaded < limit ? 'disabled' : '');
+      next.innerHTML = `<a class="page-link" href="#" data-action="next">下一页</a>`;
+      pager.appendChild(next);
+
+      pager.querySelectorAll('a').forEach(a => a.addEventListener('click', (e) => {
+        e.preventDefault();
+        const act = a.dataset.action;
+        if (act === 'prev' && offset > 0) {
+          offset = Math.max(0, offset - limit);
+          loadList();
+        } else if (act === 'next' && totalLoaded === limit) {
+          offset = offset + limit;
+          loadList();
+        }
+      }));
+
+      const currentPage = Math.floor(offset / limit) + 1;
+      const pageInfoEl = document.getElementById('pageInfo');
+      if (pageInfoEl) pageInfoEl.textContent = `第 ${currentPage} 页 · `;
+
+      const pageSizeSel = document.getElementById('pageSizeSel');
+      if (pageSizeSel && String(pageSizeSel.value) !== String(limit)) pageSizeSel.value = String(limit);
+      if (pageSizeSel && !pageSizeSel._bind) {
+        pageSizeSel.addEventListener('change', () => {
+          const newLimit = parseInt(pageSizeSel.value, 10) || 10;
+          const currentPageNum = Math.floor(offset / limit);
+          limit = newLimit;
+          offset = currentPageNum * limit;
+          loadList();
+        });
+        pageSizeSel._bind = true;
+      }
+    }
+
+    function performQuery(matchType) {
+      const form = document.getElementById('queryForm');
+      const fd = new FormData(form);
+      const obj = {};
+      const eid = fd.get('entityId');
+      const perm = fd.get('permissions');
+      if (eid) obj.entityId = eid;
+      if (perm) {
+        if (matchType === 'exact') {
+          obj.permissions = perm;
+        } else {
+          obj.permissionsLike = `%${perm}%`;
+        }
+      }
+      lastQuery = Object.keys(obj).length ? obj : null;
+      offset = 0;
+      loadList();
+    }
+
+    document.getElementById('exactQueryBtn').addEventListener('click', (e) => {
+      e.preventDefault();
+      performQuery('exact');
+    });
+
+    document.getElementById('fuzzyQueryBtn').addEventListener('click', (e) => {
+      e.preventDefault();
+      performQuery('fuzzy');
+    });
+
+    document.getElementById('resetBtn').addEventListener('click', (e) => {
+      e.preventDefault();
+      document.getElementById('queryForm').reset();
+      lastQuery = null;
+      offset = 0;
+      loadList();
+    });
+
+    const modal = document.getElementById('createModal');
+    const createBtn = document.getElementById('createBtn');
+    const closeModal = document.getElementById('closeModal');
+    const cancelCreate = document.getElementById('cancelCreate');
+    const submitCreate = document.getElementById('submitCreate');
+    const createMsg = document.getElementById('createMsg');
+    function showModal() { modal.style.display = 'block'; modal.classList.add('show'); }
+    function hideModal() { modal.style.display = 'none'; modal.classList.remove('show'); createMsg.textContent = ''; document.getElementById('createForm').reset(); }
+    createBtn.addEventListener('click', showModal);
+    closeModal.addEventListener('click', hideModal);
+    cancelCreate.addEventListener('click', hideModal);
+
+    submitCreate.addEventListener('click', async () => {
+      createMsg.textContent = '';
+      const form = document.getElementById('createForm');
+      if (!form.reportValidity()) return;
+      const fd = new FormData(form);
+      const entityId = fd.get('entityId');
+      const permission = fd.get('permission');
+      try {
+        const resp = await apiFetch(`/api/admin/permissions?entityId=${encodeURIComponent(entityId)}`, {
+          method: 'POST',
+          body: JSON.stringify(permission)
+        });
+        const text = await resp.text();
+        if (!resp.ok) {
+          createMsg.className = 'text-center small mt-2 text-danger';
+          createMsg.textContent = text || '创建失败';
+          return;
+        }
+        createMsg.className = 'text-center small mt-2 text-success';
+        createMsg.textContent = '创建成功';
+        setTimeout(() => { hideModal(); offset = 0; loadList(); }, 900);
+      } catch (err) {
+        createMsg.className = 'text-center small mt-2 text-danger';
+        createMsg.textContent = '网络错误';
+      }
+    });
+
+    const editModal = document.getElementById('editModal');
+    const editClose = document.getElementById('editClose');
+    const cancelEdit = document.getElementById('cancelEdit');
+    const submitEdit = document.getElementById('submitEdit');
+    function showEditModal() { editModal.style.display = 'block'; editModal.classList.add('show'); }
+    function hideEditModal() { editModal.style.display = 'none'; editModal.classList.remove('show'); document.getElementById('editForm').reset(); document.getElementById('editMsg').textContent = ''; }
+    editClose.addEventListener('click', hideEditModal);
+    cancelEdit.addEventListener('click', hideEditModal);
+
+    function openEditModal(entityId, permissions) {
+      const form = document.getElementById('editForm');
+      form.elements['entityId'].value = entityId;
+      form.elements['permission'].value = (permissions || '').split(',')[0] || 'DEVICE';
+      showEditModal();
+    }
+
+    submitEdit.addEventListener('click', async () => {
+      const form = document.getElementById('editForm');
+      if (!form.reportValidity()) return;
+      const fd = new FormData(form);
+      const entityId = fd.get('entityId');
+      const permission = fd.get('permission');
+      try {
+        const resp = await apiFetch(`/api/admin/permissions/${encodeURIComponent(entityId)}`, {
+          method: 'PUT',
+          body: JSON.stringify(permission)
+        });
+        const text = await resp.text();
+        const msgEl = document.getElementById('editMsg');
+        if (!resp.ok) {
+          msgEl.className = 'text-center small mt-2 text-danger';
+          msgEl.textContent = text || '更新失败';
+          return;
+        }
+        msgEl.className = 'text-center small mt-2 text-success';
+        msgEl.textContent = '更新成功';
+        setTimeout(() => { hideEditModal(); loadList(); }, 700);
+      } catch (err) {
+        const msgEl = document.getElementById('editMsg');
+        msgEl.className = 'text-center small mt-2 text-danger';
+        msgEl.textContent = '网络错误';
+      }
+    });
+
+    const detailModal = document.getElementById('detailModal');
+    const detailClose = document.getElementById('detailClose');
+    const detailOk = document.getElementById('detailOk');
+    function showDetailModal() { detailModal.style.display = 'block'; detailModal.classList.add('show'); }
+    function hideDetailModal() { detailModal.style.display = 'none'; detailModal.classList.remove('show'); }
+    detailClose.addEventListener('click', hideDetailModal);
+    detailOk.addEventListener('click', hideDetailModal);
+
+    loadList();
+  </script>
+</body>
+</html>
