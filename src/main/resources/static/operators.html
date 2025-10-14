@@ -502,7 +502,7 @@
                 // Activate current nav link safely. prefer pathname match, fallback to the old selector.
                 const currentPath = window.location.pathname || '/operators.html';
                 const activeSelector = `.nav-link[data-href="${currentPath}"]`;
-                const fallbackSelector = '.nav-link[data-href="/operators2.html"]';
+                const fallbackSelector = '.nav-link[data-href="/operators.html"]';
                 const navLink = document.querySelector(activeSelector) || document.querySelector(fallbackSelector);
                 if (navLink) {
                     navLink.classList.add('active');
@@ -941,12 +941,21 @@
             modal.show();
 
             try {
-                const response = await apiFetch(`${API_BASE}/admin/permissions/query?limit=1&offset=0&operatorId=${operatorId}`);
-                const currentPermission = response[0];
-                // Normalize current permissions to set for easy lookup
-                const activePermissions = (currentPermission && currentPermission.permissions)
-                    ? currentPermission.permissions.split(',').map(p => p.trim().toLowerCase()).filter(Boolean)
-                    : [];
+                const response = await apiFetch(`${API_BASE}/admin/permissions/query?limit=1&offset=0&id=${operatorId}`);
+                // 兼容后端可能返回数组或单个对象
+                const currentPermission = Array.isArray(response) ? response[0] : response;
+                // 兼容 permissions 字段为字符串（逗号分隔）或数组
+                let rawPermissions = [];
+                if (currentPermission && currentPermission.permissions) {
+                    if (Array.isArray(currentPermission.permissions)) {
+                        rawPermissions = currentPermission.permissions;
+                    } else {
+                        rawPermissions = String(currentPermission.permissions).split(',');
+                    }
+                }
+
+                // 归一化为小写且 trim 的 Set 以便快速查找
+                const activePermissions = new Set(rawPermissions.map(p => String(p || '').toLowerCase().trim()).filter(Boolean));
 
                 checkboxesContainer.innerHTML = '';
                 // Render grouped checkboxes
@@ -955,7 +964,8 @@
                     const groupId = `perm-group-${groupKey}`;
                     let groupHtml = `<div class="mb-3"><strong>${groupKey}</strong><div class="ps-3" id="${groupId}">`;
                     perms.forEach(perm => {
-                        const checked = activePermissions.includes(perm.toLowerCase()) ? 'checked' : '';
+                        const checked = activePermissions.has(perm.toLowerCase()) ? 'checked' : '';
+                        
                         groupHtml += `
                             <div class="form-check">
                                 <input class="form-check-input" type="checkbox" value="${perm}" id="perm-${perm.replace(/[:/]/g, '_')}" ${checked}>

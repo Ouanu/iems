@@ -36,6 +36,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers("/api/devices/auth/**").permitAll()
                 .requestMatchers("/api/admin/**").authenticated()
+                .requestMatchers("/api/apks/**").authenticated()
                 .anyRequest().permitAll()
                 // .requestMatchers("/api/**").permitAll()
                 // .anyRequest().authenticated()

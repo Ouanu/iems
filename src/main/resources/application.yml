@@ -13,3 +13,14 @@ logging:
   level:
     root: INFO
     dev.ouanu.iems: DEBUG
+
+file:
+  storage:
+    apks-dir: ./storage/apks
+    icons-dir: ./storage/icons
+
+spring:
+  servlet:
+    multipart:
+      max-file-size: 2000MB
+      max-request-size: 2000MB

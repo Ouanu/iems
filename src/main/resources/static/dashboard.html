@@ -31,12 +31,15 @@
           const res = await fetch('/sidebar.html');
           const html = await res.text();
           document.getElementById('sidebarContainer').innerHTML = html;
-          // set active link based on pathname
-          const path = location.pathname || '/dashboard.html';
-          document.querySelectorAll('#sidebarContainer .nav-link').forEach(a=>{
-            if (a.dataset && a.dataset.href === path) a.classList.add('active');
-            else a.classList.remove('active');
-          });
+
+          // set active link based on pathname (兼容 data-href 属性，和默认 /dashboard.html)
+          const currentPath = window.location.pathname || '/dashboard.html';
+          const activeLink = document.querySelector(`#sidebarContainer .nav-link[data-href="${currentPath}"]`)
+                            || document.querySelector('#sidebarContainer .nav-link[data-href="/dashboard.html"]');
+          // 清除旧的 active 并设置新的
+          document.querySelectorAll('#sidebarContainer .nav-link').forEach(a => a.classList.remove('active'));
+          if (activeLink) activeLink.classList.add('active');
+
           const logout = document.getElementById('logoutBtn');
           if (logout) logout.addEventListener('click', () => {
             localStorage.removeItem('accessToken');
@@ -76,8 +79,10 @@
             <div class="card p-3">
               <h6>快速操作</h6>
               <div class="d-flex gap-2 mt-2">
-                <a class="btn btn-outline-primary" href="/operators2.html">管理 Operators</a>
-                <a class="btn btn-outline-secondary" href="#">管理 Apps</a>
+                <a class="btn btn-outline-primary" href="/operators.html">管理账号</a>
+                <a class="btn btn-outline-secondary" href="/devices.html">管理设备</a>
+                <a class="btn btn-outline-success" href="/permissions.html">管理权限</a>
+                <a class="btn btn-outline-danger" href="/apks.html">管理APK</a>
               </div>
             </div>
           </div>

@@ -8,6 +8,11 @@
     <style>
     body { background:#f5f7fb; min-height:100vh; }
     .sidebar { width:240px; background:#fff; border-right:1px solid #e9eef6; min-height:100vh; position:fixed; }
+    /* 高亮 sidebar 项目：与 dashboard/operators 保持一致的选中样式 */
+    .nav-link.active {
+      background: linear-gradient(90deg, rgba(99,102,241,0.08), transparent);
+      border-radius: 8px;
+    }
     .main { margin-left:260px; padding:24px; }
     .card { border-radius:12px; box-shadow:0 6px 20px rgba(20,30,50,0.04); }
 
@@ -275,24 +280,76 @@
   </div>
 
   <script>
-    let offset = 0, limit = 10, totalLoaded = 0, lastQuery = null;
+    // --- Token refresh helpers (参考 operators.html) ---
+    let refreshPromise = null;
 
+    function getAccessToken() {
+      return localStorage.getItem('accessToken') || '';
+    }
+
+    async function refreshAccessToken() {
+      if (refreshPromise) return refreshPromise;
+      refreshPromise = (async () => {
+        const rt = localStorage.getItem('refreshToken');
+        if (!rt) throw new Error('No refresh token');
+
+        const res = await fetch(`${API_BASE}/auth/refresh`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ refreshToken: rt })
+        });
+
+        if (!res.ok) {
+          localStorage.removeItem('accessToken');
+          localStorage.removeItem('refreshToken');
+          throw new Error('Refresh token invalid');
+        }
+
+        const data = await res.json();
+        if (!data || !data.accessToken) throw new Error('Invalid refresh response');
+
+        localStorage.setItem('accessToken', data.accessToken);
+        if (data.refreshToken) localStorage.setItem('refreshToken', data.refreshToken);
+        return data.accessToken;
+      })().finally(() => { refreshPromise = null; });
+
+      return refreshPromise;
+    }
+
+    // --- apiFetch with refresh-on-401 and retry ---
     async function apiFetch(url, opts = {}) {
-      const token = localStorage.getItem('accessToken');
       opts.headers = opts.headers || {};
-      if (!opts.headers['Content-Type'] && !(opts.body instanceof FormData)) {
+
+      // set Content-Type unless body is FormData or header already provided
+      if (!(opts.body instanceof FormData) && !opts.headers['Content-Type']) {
         opts.headers['Content-Type'] = 'application/json';
       }
-      if (token) opts.headers['Authorization'] = 'Bearer ' + token;
-      const resp = await fetch(url, opts);
-      if (resp.status === 401) {
-        localStorage.removeItem('accessToken');
-        localStorage.removeItem('refreshToken');
-        window.location.href = '/login.html';
-        throw new Error('unauthorized');
+
+      if (getAccessToken()) {
+        opts.headers['Authorization'] = 'Bearer ' + getAccessToken();
       }
+
+      let resp = await fetch(url, opts);
+
+      if (resp.status === 401) {
+        try {
+          await refreshAccessToken(); // may throw
+          // retry original request with refreshed token
+          const retryOpts = { ...opts, headers: { ...opts.headers, 'Authorization': 'Bearer ' + getAccessToken() } };
+          resp = await fetch(url, retryOpts);
+        } catch (err) {
+          // refresh failed -> force logout
+          localStorage.removeItem('accessToken');
+          localStorage.removeItem('refreshToken');
+          window.location.href = '/login.html';
+          throw err;
+        }
+      }
+
       return resp;
     }
+
+    let offset = 0, limit = 10, totalLoaded = 0, lastQuery = null;
 
     async function loadList() {
       let url = `/api/admin/permissions?offset=${offset}&limit=${limit}`;

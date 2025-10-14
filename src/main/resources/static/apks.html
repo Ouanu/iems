@@ -1,0 +1,599 @@
+<!doctype html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>App Management - IEMS</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <style>
+        body { background: #f5f7fb; min-height: 100vh; }
+        .sidebar { width: 240px; background: #ffffff; border-right: 1px solid #e9eef6; min-height: 100vh; }
+        .content { padding: 24px; }
+        .card { border-radius: 12px; box-shadow: 0 6px 20px rgba(20, 30, 50, 0.04); }
+        .nav-link.active { background: linear-gradient(90deg, rgba(99,102,241,0.08), transparent); border-radius:8px; }
+        /* 表格单元通用：允许换行并在超长单词处断开 */
+        .table th,
+        .table td {
+            white-space: normal !important;
+            overflow-wrap: anywhere;
+            word-break: break-word;
+            vertical-align: middle;
+            padding: .6rem .75rem;
+        }
+
+        /* 固定每列最大/期望宽度，超出自动换行 */
+        /* 1 图标列（固定宽，图片居中） */
+        .table thead th:nth-child(1),
+        .table tbody td:nth-child(1) {
+            width: 72px;
+            max-width: 72px;
+            text-align: center;
+            white-space: nowrap; /* 保持图标不换行（图像本身） */
+        }
+        .table td img { max-width: 56px; max-height:56px; width: auto; height: auto; display: inline-block; }
+
+        /* 2 应用名（可较宽） */
+        .table thead th:nth-child(2),
+        .table tbody td:nth-child(2) {
+            width: 220px;
+            max-width: 220px;
+        }
+
+        /* 3 包名 */
+        .table thead th:nth-child(3),
+        .table tbody td:nth-child(3) {
+            width: 180px;
+            max-width: 180px;
+        }
+
+        /* 4 版本名 */
+        .table thead th:nth-child(4),
+        .table tbody td:nth-child(4) {
+            width: 120px;
+            max-width: 120px;
+        }
+
+        /* 5 组织 */
+        .table thead th:nth-child(5),
+        .table tbody td:nth-child(5) {
+            width: 140px;
+            max-width: 140px;
+        }
+
+        /* 6 分组 */
+        .table thead th:nth-child(6),
+        .table tbody td:nth-child(6) {
+            width: 120px;
+            max-width: 120px;
+        }
+
+        /* 7 操作列（按钮） */
+        .table thead th:nth-child(7),
+        .table tbody td:nth-child(7) {
+            width: 160px;
+            max-width: 160px;
+            text-align: center;
+        }
+        .table td.col-actions .btn { margin: 2px; }
+
+        /* 详情弹窗样式 */
+        #apkDetailModal .modal-dialog { max-width: 600px; }
+        #apkDetailModal .modal-body div { margin-bottom: 0.5rem; }
+        /* 与 operators.html 保持一致：字段名与值紧靠在一起，不强制留出固定宽度 */
+        #apkDetailModal .modal-body strong { color: #6c757d; font-weight:600; }
+        #apkDetailModal .modal-body .hash-value { word-break: break-all; } /* 强制哈希值换行 */
+
+        /* 上传进度条样式 */
+        .progress-container { display: none; }
+    </style>
+</head>
+
+<body>
+    <div class="d-flex">
+        <div id="sidebarContainer"></div>
+
+        <div class="flex-grow-1 content">
+            <div class="container-fluid">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <h4>应用管理</h4>
+                        <p class="text-muted mb-0">上传、查看和管理所有应用包。</p>
+                    </div>
+                    <div>
+                        <button class="btn btn-outline-secondary me-2" type="button" data-bs-toggle="collapse" data-bs-target="#searchCollapse">
+                            <i class="bi bi-search"></i> 查询
+                        </button>
+                        <button class="btn btn-primary" onclick="prepareUploadForm()">
+                            <i class="bi bi-upload"></i> 上传应用
+                        </button>
+                    </div>
+                </div>
+
+                <div class="collapse mb-4" id="searchCollapse">
+                    <div class="card">
+                        <div class="card-body">
+                            <form id="searchForm">
+                                <div class="row g-3 align-items-end">
+                                    <div class="col-md-3"><input type="text" class="form-control" id="searchPackageName" placeholder="包名"></div>
+                                    <div class="col-md-3"><input type="text" class="form-control" id="searchVersionName" placeholder="版本名"></div>
+                                    <div class="col-md-2"><input type="text" class="form-control" id="searchOrganization" placeholder="组织"></div>
+                                    <div class="col-md-2"><input type="text" class="form-control" id="searchGroup" placeholder="分组"></div>
+                                    <div class="col-md-2 d-flex justify-content-end">
+                                        <button type="button" class="btn btn-info me-2" onclick="handleSearch()">查询</button>
+                                        <button type="button" class="btn btn-light" onclick="handleReset()">重置</button>
+                                    </div>
+                                </div>
+                                <div class="row mt-2">
+                                    <div class="col-12 d-flex justify-content-end">
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" role="switch" id="fuzzySearch">
+                                            <label class="form-check-label" for="fuzzySearch">模糊查询</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle">
+                                <thead>
+                                    <tr>
+                                        <th>图标</th>
+                                        <th>应用名</th>
+                                        <th>包名</th>
+                                        <th>版本名</th>
+                                        <th>组织</th>
+                                        <th>分组</th>
+                                        <th>操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="apksTableBody"></tbody>
+                            </table>
+                        </div>
+                        <nav aria-label="Page navigation">
+                            <ul class="pagination justify-content-end" id="pagination"></ul>
+                        </nav>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Upload/Edit Modal -->
+    <div class="modal fade" id="apkModal" tabindex="-1" aria-labelledby="apkModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header"><h5 class="modal-title" id="apkModalLabel"></h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+                <div class="modal-body">
+                    <form id="apkForm">
+                        <input type="hidden" id="apkId">
+                        <div class="mb-3" id="file-upload-group">
+                            <label for="apkFile" class="form-label">选择 APK 文件</label>
+                            <input type="file" class="form-control" id="apkFile" accept=".apk" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="organization" class="form-label">组织</label>
+                            <input type="text" class="form-control" id="organization" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="group" class="form-label">分组</label>
+                            <input type="text" class="form-control" id="group" required>
+                        </div>
+                    </form>
+                    <!-- Upload Progress and Result -->
+                    <div class="progress-container mt-3">
+                        <div class="progress" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+                            <div class="progress-bar progress-bar-striped progress-bar-animated" style="width: 0%"></div>
+                        </div>
+                        <div id="uploadStatus" class="form-text mt-1"></div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="cancelBtn">取消</button>
+                    <button type="button" class="btn btn-primary" id="saveBtn">保存</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detail Modal -->
+    <div class="modal fade" id="apkDetailModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered"><div class="modal-content">
+            <div class="modal-header"><h5 class="modal-title">应用详情</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body" id="apkDetailBody"></div>
+            <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button></div>
+        </div></div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const API_BASE = '/api';
+        const accessToken = localStorage.getItem('accessToken');
+        let currentPage = 0;
+        const pageSize = 10;
+        let currentSearchQuery = null;
+
+        // --- Auth & Sidebar ---
+        if (!accessToken) window.location.href = '/login.html';
+        (async function loadSidebar() {
+            try {
+                const res = await fetch('/sidebar.html');
+                const html = await res.text();
+                document.getElementById('sidebarContainer').innerHTML = html;
+
+                // 与 dashboard 保持一致：根据 pathname 高亮对应项，先清除已有 active
+                const currentPath = window.location.pathname || '/apks.html';
+                const container = document.getElementById('sidebarContainer');
+                container.querySelectorAll('.nav-link').forEach(a => a.classList.remove('active'));
+                const activeLink = container.querySelector(`.nav-link[data-href="${currentPath}"]`)
+                    || container.querySelector('.nav-link[data-href="/apks.html"]');
+                if (activeLink) activeLink.classList.add('active');
+
+                const logout = document.getElementById('logoutBtn');
+                if (logout) logout.addEventListener('click', () => {
+                    localStorage.removeItem('accessToken');
+                    localStorage.removeItem('refreshToken');
+                    window.location.href = '/login.html';
+                });
+            } catch (e) {
+                console.error('Failed to load sidebar', e);
+            }
+        })();
+
+        // --- API Fetch with Auth ---
+        let refreshPromise = null;
+
+        function getAccessToken() {
+            return localStorage.getItem('accessToken') || '';
+        }
+
+        async function refreshAccessToken() {
+            if (refreshPromise) return refreshPromise;
+            refreshPromise = (async () => {
+                const rt = localStorage.getItem('refreshToken');
+                if (!rt) throw new Error('No refresh token');
+
+                const res = await fetch(`${API_BASE}/auth/refresh`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ refreshToken: rt })
+                });
+
+                if (!res.ok) {
+                    localStorage.removeItem('accessToken');
+                    localStorage.removeItem('refreshToken');
+                    throw new Error('Refresh token invalid');
+                }
+
+                const data = await res.json();
+                if (!data || !data.accessToken) throw new Error('Invalid refresh response');
+
+                localStorage.setItem('accessToken', data.accessToken);
+                if (data.refreshToken) localStorage.setItem('refreshToken', data.refreshToken);
+                return data.accessToken;
+            })().finally(() => { refreshPromise = null; });
+
+            return refreshPromise;
+        }
+
+        async function apiFetch(url, options = {}) {
+            const buildHeaders = () => {
+                const headers = { 'Authorization': `Bearer ${getAccessToken()}` };
+                if (!(options.body instanceof FormData)) {
+                    headers['Content-Type'] = 'application/json';
+                }
+                return { ...headers, ...options.headers };
+            };
+
+            let response = await fetch(url, { ...options, headers: buildHeaders() });
+
+            if (response.status === 401) {
+                try {
+                    await refreshAccessToken();
+                    response = await fetch(url, { ...options, headers: buildHeaders() });
+                } catch (refreshErr) {
+                    console.error('Token refresh failed:', refreshErr);
+                    alert('会话已过期，请重新登录。');
+                    window.location.href = '/login.html';
+                    throw refreshErr;
+                }
+            }
+
+            if (!response.ok) {
+                const error = await response.text();
+                throw new Error(error || `HTTP error! status: ${response.status}`);
+            }
+
+            const contentType = response.headers.get("content-type");
+            return contentType?.includes("application/json") ? response.json() : response.text();
+        }
+
+        // --- Search and Reset ---
+        function handleSearch() {
+            const getVal = id => document.getElementById(id).value.trim();
+            currentSearchQuery = {
+                packageName: getVal('searchPackageName'),
+                versionName: getVal('searchVersionName'),
+                organization: getVal('searchOrganization'),
+                group: getVal('searchGroup'),
+                fuzzy: document.getElementById('fuzzySearch').checked
+            };
+            Object.keys(currentSearchQuery).forEach(key => {
+                if (!currentSearchQuery[key]) delete currentSearchQuery[key];
+            });
+            if (Object.keys(currentSearchQuery).length === 0) currentSearchQuery = null;
+            fetchApks(0);
+        }
+
+        function handleReset() {
+            document.getElementById('searchForm').reset();
+            currentSearchQuery = null;
+            fetchApks(0);
+        }
+
+        // --- Main Data Fetch ---
+        async function fetchApks(page = 0) {
+            currentPage = page;
+            const offset = page * pageSize;
+            const queryLimit = pageSize + 1; // Fetch one extra to check for next page
+
+            const query = { ...(currentSearchQuery || {}), offset, limit: queryLimit };
+            
+            try {
+                const apks = await apiFetch(`${API_BASE}/apks/query`, { method: 'POST', body: JSON.stringify(query) });
+                const hasNextPage = apks.length > pageSize;
+                const itemsToDisplay = apks.slice(0, pageSize);
+                renderTable(itemsToDisplay);
+                setupPagination(hasNextPage);
+            } catch (error) {
+                console.error('Failed to fetch apks:', error);
+                alert(`加载应用列表失败: ${error.message}`);
+                document.getElementById('apksTableBody').innerHTML = `<tr><td colspan="7" class="text-center text-danger">加载失败</td></tr>`;
+            }
+        }
+
+        function renderTable(apks) {
+            const tableBody = document.getElementById('apksTableBody');
+            tableBody.innerHTML = '';
+            if (!apks || apks.length === 0) {
+                tableBody.innerHTML = '<tr><td colspan="7" class="text-center">没有找到应用</td></tr>';
+                return;
+            }
+            apks.forEach(apk => {
+                // Ensure path served by MvcConfig: /storage/** -> ./storage/**
+                const iconPath = apk.iconPath ? String(apk.iconPath).replace(/^\/+/, '') : '';
+                const iconSrc = iconPath ? `/storage/${iconPath}` : 'https://via.placeholder.com/48';
+
+                const row = `
+                    <tr>
+                        <td><img src="${iconSrc}" alt="icon" width="48" height="48" class="rounded" onerror="this.onerror=null;this.src='https://via.placeholder.com/48';"></td>
+                        <td>${apk.labels?.default || '-'}</td>
+                        <td>${apk.packageName || '-'}</td>
+                        <td>${apk.versionName || '-'}</td>
+                        <td>${apk.organization || '-'}</td>
+                        <td>${apk.group || '-'}</td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-success me-1" onclick='downloadApk("${apk.id}")' title="下载"><i class="bi bi-download"></i></button>
+                            <button class="btn btn-sm btn-outline-info" onclick='showDetails("${apk.id}")' title="详情"><i class="bi bi-eye"></i></button>
+                            <button class="btn btn-sm btn-outline-primary" onclick='prepareEditForm(${JSON.stringify(apk)})' title="编辑"><i class="bi bi-pencil"></i></button>
+                            <button class="btn btn-sm btn-outline-danger" onclick="deleteApk('${apk.id}')" title="删除"><i class="bi bi-trash"></i></button>
+                        </td>
+                    </tr>`;
+                tableBody.insertAdjacentHTML('beforeend', row);
+            });
+        }
+
+        // --- CRUD Modals & Actions ---
+        function prepareUploadForm() {
+            const modalEl = document.getElementById('apkModal');
+            const modal = new bootstrap.Modal(modalEl);
+            document.getElementById('apkModalLabel').textContent = '上传 APK';
+            document.getElementById('apkForm').reset();
+            document.getElementById('apkId').value = '';
+            document.getElementById('file-upload-group').style.display = 'block';
+            document.getElementById('apkFile').required = true;
+            document.getElementById('saveBtn').onclick = uploadApk;
+            
+            // Reset progress bar
+            const progressContainer = modalEl.querySelector('.progress-container');
+            const progressBar = progressContainer.querySelector('.progress-bar');
+            const uploadStatus = document.getElementById('uploadStatus');
+            progressContainer.style.display = 'none';
+            progressBar.style.width = '0%';
+            progressBar.classList.remove('bg-success', 'bg-danger');
+            uploadStatus.textContent = '';
+            document.getElementById('saveBtn').disabled = false;
+            document.getElementById('cancelBtn').disabled = false;
+
+            modal.show();
+        }
+
+        function prepareEditForm(apk) {
+            document.getElementById('apkModalLabel').textContent = '编辑 APK';
+            document.getElementById('apkForm').reset();
+            document.getElementById('apkId').value = apk.id;
+            document.getElementById('organization').value = apk.organization;
+            document.getElementById('group').value = apk.group;
+            document.getElementById('file-upload-group').style.display = 'none';
+            document.getElementById('apkFile').required = false;
+            document.getElementById('saveBtn').onclick = saveApkChanges;
+            document.querySelector('#apkModal .progress-container').style.display = 'none';
+            new bootstrap.Modal(document.getElementById('apkModal')).show();
+        }
+
+        function uploadApk() {
+            const form = document.getElementById('apkForm');
+            if (!form.checkValidity()) return form.reportValidity();
+
+            const fileInput = document.getElementById('apkFile');
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+            formData.append('organization', document.getElementById('organization').value);
+            formData.append('group', document.getElementById('group').value);
+
+            const xhr = new XMLHttpRequest();
+            const modalEl = document.getElementById('apkModal');
+            const progressContainer = modalEl.querySelector('.progress-container');
+            const progressBar = progressContainer.querySelector('.progress-bar');
+            const uploadStatus = document.getElementById('uploadStatus');
+            const saveBtn = document.getElementById('saveBtn');
+            const cancelBtn = document.getElementById('cancelBtn');
+
+            xhr.open('POST', `${API_BASE}/apks/upload`, true);
+            xhr.setRequestHeader('Authorization', `Bearer ${accessToken}`);
+
+            xhr.upload.onprogress = function(event) {
+                if (event.lengthComputable) {
+                    const percentComplete = (event.loaded / event.total) * 100;
+                    progressBar.style.width = percentComplete + '%';
+                    uploadStatus.textContent = `正在上传... ${Math.round(percentComplete)}%`;
+                }
+            };
+            
+            xhr.onloadstart = function() {
+                progressContainer.style.display = 'block';
+                saveBtn.disabled = true;
+                cancelBtn.disabled = true;
+            };
+
+            xhr.onload = function() {
+                saveBtn.disabled = false;
+                cancelBtn.disabled = false;
+                if (xhr.status >= 200 && xhr.status < 300) {
+                    progressBar.classList.add('bg-success');
+                    uploadStatus.textContent = '上传成功！正在处理...';
+                    setTimeout(() => {
+                        bootstrap.Modal.getInstance(modalEl).hide();
+                        fetchApks(currentPage);
+                    }, 1000);
+                } else {
+                    progressBar.classList.add('bg-danger');
+                    uploadStatus.textContent = `上传失败: ${xhr.responseText || xhr.statusText}`;
+                }
+            };
+
+            xhr.onerror = function() {
+                saveBtn.disabled = false;
+                cancelBtn.disabled = false;
+                progressBar.classList.add('bg-danger');
+                uploadStatus.textContent = '网络错误，上传失败。';
+            };
+
+            xhr.send(formData);
+        }
+
+        async function saveApkChanges() {
+            const id = document.getElementById('apkId').value;
+            const body = JSON.stringify({
+                organization: document.getElementById('organization').value,
+                group: document.getElementById('group').value,
+            });
+            try {
+                await apiFetch(`${API_BASE}/apks/${id}`, { method: 'PUT', body });
+                alert('APK 更新成功!');
+                bootstrap.Modal.getInstance(document.getElementById('apkModal')).hide();
+                fetchApks(currentPage);
+            } catch (error) {
+                console.error('Update failed:', error);
+                alert(`更新失败: ${error.message}`);
+            }
+        }
+
+        async function deleteApk(id) {
+            if (!confirm(`确定要删除此应用吗？相关文件将一并被移除。`)) return;
+            try {
+                await apiFetch(`${API_BASE}/apks/${id}`, { method: 'DELETE' });
+                alert('应用已删除。');
+                fetchApks(currentPage);
+            } catch (error) {
+                console.error('Delete failed:', error);
+                alert(`删除失败: ${error.message}`);
+            }
+        }
+
+        async function showDetails(id) {
+            const detailBody = document.getElementById('apkDetailBody');
+            detailBody.innerHTML = '加载中...';
+            new bootstrap.Modal(document.getElementById('apkDetailModal')).show();
+            try {
+                const apk = await apiFetch(`${API_BASE}/apks/${id}`);
+                const labelsHtml = Object.entries(apk.labels || {})
+                    .map(([lang, label]) => `<div><strong>标签 (${lang}):</strong> ${label}</div>`).join('');
+                // 与 operators.html 一致的紧凑展示，每个字段一行，字段名与值紧贴
+                detailBody.innerHTML = `
+                    <div><strong>ID:</strong> ${apk.id ?? '-'}</div>
+                    <div><strong>包名:</strong> ${apk.packageName ?? '-'}</div>
+                    <div><strong>版本名:</strong> ${apk.versionName ?? '-'}</div>
+                    <div><strong>版本号:</strong> ${apk.versionCode ?? '-'}</div>
+                    <div><strong>组织:</strong> ${apk.organization ?? '-'}</div>
+                    <div><strong>分组:</strong> ${apk.group ?? '-'}</div>
+                    <hr>
+                    ${labelsHtml || '<div><strong>标签:</strong> -</div>'}
+                    <hr>
+                    <div><strong>文件路径:</strong> ${apk.filePath ?? '-'}</div>
+                    <div><strong>图标路径:</strong> ${apk.iconPath ?? '-'}</div>
+                    <div><strong>文件哈希 (SHA256):</strong> <small class="hash-value">${apk.fileHash ?? '-'}</small></div>
+                `;
+            } catch (error) {
+                detailBody.innerHTML = `<div class="text-danger">加载详情失败: ${error.message}</div>`;
+            }
+        }
+
+        async function downloadApk(id) {
+            try {
+                // get apk metadata (uses apiFetch which includes auth/refresh)
+                const apk = await apiFetch(`${API_BASE}/apks/${id}`);
+                if (!apk || !apk.filePath) {
+                    alert('未找到可下载的文件');
+                    return;
+                }
+                const filePath = String(apk.filePath).replace(/^\/+/, '');
+                const fileUrl = `/storage/${filePath}`;
+
+                // fetch file as blob (include auth header in case server requires it)
+                const res = await fetch(fileUrl, {
+                    headers: { 'Authorization': `Bearer ${getAccessToken()}` }
+                });
+                if (!res.ok) throw new Error(`文件下载失败：${res.status}`);
+
+                const blob = await res.blob();
+                const filename = `${apk.packageName ?? 'app'}-v${apk.versionCode ?? ''}.apk`.replace(/(^-|-$)/g, '');
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                URL.revokeObjectURL(url);
+            } catch (err) {
+                console.error('downloadApk error:', err);
+                alert('下载失败: ' + (err.message || err));
+            }
+        }
+
+        // --- Pagination ---
+        function setupPagination(hasNextPage) {
+            const pagination = document.getElementById('pagination');
+            pagination.innerHTML = `
+                <li class="page-item ${currentPage === 0 ? 'disabled' : ''}">
+                    <a class="page-link" href="#" onclick="event.preventDefault(); fetchApks(${currentPage - 1})">上一页</a>
+                </li>
+                <li class="page-item active"><a class="page-link" href="#">${currentPage + 1}</a></li>
+                <li class="page-item ${!hasNextPage ? 'disabled' : ''}">
+                    <a class="page-link" href="#" onclick="event.preventDefault(); fetchApks(${currentPage + 1})">下一页</a>
+                </li>
+            `;
+        }
+
+        // --- Initial Load ---
+        document.addEventListener('DOMContentLoaded', () => fetchApks(0));
+    </script>
+</body>
+</html>

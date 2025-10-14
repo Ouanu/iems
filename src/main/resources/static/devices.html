@@ -554,9 +554,6 @@
                 const devices = data.slice(0, pageSize);
 
                 const tableBody = document.getElementById('devicesTableBody');
-                devices.forEach(device => {
-                    console.log("Fetched device:", device);
-                });
                 
                 tableBody.innerHTML = devices.map(device => `
                      <tr>
@@ -677,7 +674,7 @@
 
             try {
                 // 请求当前设备权限（复用 admin/permissions/query 接口，传入 deviceId）
-                const response = await apiFetch(`${API_BASE}/admin/permissions/query?limit=1&offset=0&deviceId=${deviceId}`);
+                const response = await apiFetch(`${API_BASE}/admin/permissions/query?limit=1&offset=0&id=${deviceId}`);
                 const currentPermission = response[0];
                 const activePermissions = (currentPermission && currentPermission.permissions)
                     ? currentPermission.permissions.split(',').map(p => p.trim().toLowerCase()).filter(Boolean)
