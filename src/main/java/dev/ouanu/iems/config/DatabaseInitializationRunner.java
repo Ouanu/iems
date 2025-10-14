@@ -13,8 +13,8 @@ import org.springframework.stereotype.Component;
 import dev.ouanu.iems.constant.AccountType;
 import dev.ouanu.iems.constant.BizType;
 import dev.ouanu.iems.constant.Permission;
-import dev.ouanu.iems.entity.Operator;
 import dev.ouanu.iems.entity.IdPermission;
+import dev.ouanu.iems.entity.Operator;
 import dev.ouanu.iems.mapper.DeviceMapper;
 import dev.ouanu.iems.mapper.OperatorMapper;
 import dev.ouanu.iems.mapper.PermissionMapper;
@@ -34,13 +34,13 @@ public class DatabaseInitializationRunner implements ApplicationRunner {
     @Value("${app.initial.admin.email:admin@example.com}")
     private String adminEmail;
 
-    @Value("${app.initial.admin.password:admin123}")
+    @Value("${app.initial.admin.password:rxadmin8080}")
     private String adminPassword;
 
     @Value("${app.initial.admin.display-name:Administrator}")
     private String adminDisplayName;
 
-    @Value("${app.initial.admin.phone:0000000000}")
+    @Value("${app.initial.admin.phone:12345678910}")
     private String adminPhone;
 
     public DatabaseInitializationRunner(OperatorMapper operatorMapper, PermissionMapper permissionMapper, DeviceMapper deviceMapper, SnowflakeIdMapper snowflakeIdMapper, SnowflakeIdService snowflakeIdService) {
