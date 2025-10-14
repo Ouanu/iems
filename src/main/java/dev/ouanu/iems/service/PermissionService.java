@@ -49,7 +49,7 @@ public class PermissionService {
      * @return
      */
     @Transactional
-    public boolean createPermission(Long Id, Permission permissions) {
+    public boolean createPermission(Long Id, Permission... permissions) {
         try {
             IdPermission entity = new IdPermission();
             entity.setId(Id);

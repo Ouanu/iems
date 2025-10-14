@@ -15,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 
 import dev.ouanu.iems.constant.BizType;
+import dev.ouanu.iems.constant.Permission;
 import dev.ouanu.iems.dto.DeviceLogoutDTO;
 import dev.ouanu.iems.dto.RegisterDeviceDTO;
 import dev.ouanu.iems.dto.UpdateDeviceDTO;
@@ -35,18 +36,20 @@ public class DeviceService {
     private final DeviceTokenRepository deviceTokenRepository;
     private final AccessTokenBlacklistRepository blacklistRepository;
     private final SnowflakeIdService snowflakeIdService;
+    private final PermissionService permissionService;
     private static final int DEFAULT_LIMIT = 20;
     private static final int MAX_LIMIT = 100;
 
     public DeviceService(DeviceMapper deviceMapper,
                          JwtUtil jwtUtil,
                          DeviceTokenRepository deviceTokenRepository,
-                         AccessTokenBlacklistRepository blacklistRepository, SnowflakeIdService snowflakeIdService) {
+                         AccessTokenBlacklistRepository blacklistRepository, SnowflakeIdService snowflakeIdService, PermissionService permissionService) {
         this.deviceMapper = deviceMapper;
         this.jwtUtil = jwtUtil;
         this.deviceTokenRepository = deviceTokenRepository;
         this.blacklistRepository = blacklistRepository;
         this.snowflakeIdService = snowflakeIdService;
+        this.permissionService = permissionService;
     }
 
     @Transactional
@@ -64,6 +67,10 @@ public class DeviceService {
         int ret = deviceMapper.insert(device);
         if (ret != 1) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to create device");
+        }
+        var retP = permissionService.createPermission(device.getId(), Permission.DEVICE_READ_ITSELF, Permission.DEVICE_UPDATE_ITSELF, Permission.DEVICE_WRITE_ITSELF);
+        if (retP) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to create device permissions");
         }
         return ResponseEntity.status(HttpStatus.CREATED).body("Device created with ID: " + device.getId());
     }
