@@ -51,6 +51,10 @@ public class DeviceService {
 
     @Transactional
     public ResponseEntity<String> registerDevice(RegisterDeviceDTO dto) {
+        var dm = deviceMapper.selectByMacAddress(dto.getMacAddress());
+        if (dm != null) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("Device with this MAC address already exists");
+        }
         Device device = RegisterDeviceDTO.toEntity(dto);
         device.setId(snowflakeIdService.nextIdAndPersist(BizType.DEVICE));
         device.setUuid(UUID.randomUUID().toString());

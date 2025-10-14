@@ -98,6 +98,7 @@ public final class JwtUtil {
     public Long getSubjectAsLong(String token) {
         try {
             String sub = verify(token).getSubject();
+            System.out.println("Token subject: " + sub);
             return sub == null ? null : Long.valueOf(sub);
         } catch (JWTVerificationException | NumberFormatException e) {
             return null;

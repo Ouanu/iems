@@ -142,6 +142,7 @@ public class DeviceController {
     @PreAuthorize("hasAuthority('device:write:self')")
     @PostMapping(path = "/devices/auth/refresh", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<TokenVO> refresh(@Valid @RequestBody RefreshRequest req) {
+        System.out.println("Refreshing token for refresh token: " + req.refreshToken);
         return deviceService.refreshToken(req.refreshToken);
     }
 
@@ -171,7 +172,7 @@ public class DeviceController {
     }
 
     @PreAuthorize("hasAuthority('device:write:self')")
-    @PutMapping(path="/devices/auth/{id}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @PutMapping(path="/devices/auth/me", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<String> updateDeviceAuth(@Valid @RequestBody UpdateDeviceRequest dto) {
         var updateDto = new UpdateDeviceDTO(dto.model, dto.brand, dto.serialno, dto.androidVersion,
                 dto.appVersion, dto.romVersion, true, false);

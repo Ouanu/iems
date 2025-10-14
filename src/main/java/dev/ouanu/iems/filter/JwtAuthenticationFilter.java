@@ -59,7 +59,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             filterChain.doFilter(request, response);
             return;
         }
-        
+        System.out.println("Found token: " + token);
         
         try {
             if (!jwtUtil.validate(token)) {
@@ -72,6 +72,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             }
             Long id = jwtUtil.getSubjectAsLong(token);
             if (id != null) {
+                System.out.println("Authenticated operator ID: " + id);
                 var permissionVO = permissionService.getPermissionVOById(id);
                 if (permissionVO == null) {
                     throw new IllegalStateException("Operator has no permissions");
@@ -84,6 +85,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                             .map(SimpleGrantedAuthority::new) // 权限形如 "operator:read"
                             .toList();
                 }
+                authorities.forEach(action -> {
+                    System.out.println(action.getAuthority());
+                });
                 var auth = new UsernamePasswordAuthenticationToken(id, null, authorities);
                 SecurityContextHolder.getContext().setAuthentication(auth);
             }
