@@ -2,10 +2,13 @@ package dev.ouanu.iems.service;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -43,19 +46,22 @@ public class OperatorService {
     private static final int DEFAULT_LIMIT = 20;
     private static final int MAX_LIMIT = 100;
     private final SnowflakeIdService snowflakeIdService;
+    private final RedisTokenService redisTokenService;
 
     public OperatorService(OperatorMapper operatorMapper,
                            PasswordEncoder passwordEncoder,
                            JwtUtil jwtUtil,
                            OperatorTokenRepository operatorTokenRepository,
                            AccessTokenBlacklistRepository blacklistRepository,
-                           SnowflakeIdService snowflakeIdService) {
+                           SnowflakeIdService snowflakeIdService,
+                           RedisTokenService redisTokenService) {
         this.snowflakeIdService = snowflakeIdService;
         this.operatorMapper = operatorMapper;
         this.passwordEncoder = passwordEncoder;
         this.jwtUtil = jwtUtil;
         this.operatorTokenRepository = operatorTokenRepository;
         this.blacklistRepository = blacklistRepository;
+        this.redisTokenService = redisTokenService;
     }
 
     /**
@@ -64,22 +70,22 @@ public class OperatorService {
      * @return
      */
     @Transactional
-    public ResponseEntity<String> createOperator(RegisterOperatorDTO dto) {
-        // verify auth's permission
+    @CacheEvict(value = {"operators:list","operators:byId"}, allEntries = true)
+    public Operator createOperator(RegisterOperatorDTO dto) {
         if (operatorMapper.existsByPhone(dto.getPhone())) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body("Phone already in use");
+            throw new IllegalStateException("Phone already in use");
         }
         if (operatorMapper.existsByEmail(dto.getEmail())) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body("Email already in use");
+            throw new IllegalStateException("Email already in use");
         }
         Operator operator = dto.toEntity(passwordEncoder);
         operator.setId(snowflakeIdService.nextIdAndPersist(BizType.OPERATOR));
         operator.setUuid(UUID.randomUUID().toString());
         int ret = operatorMapper.insert(operator);
         if (ret != 1) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to create operator");
+            throw new IllegalStateException("Failed to create operator");
         }
-        return ResponseEntity.status(HttpStatus.CREATED).body("Operator created with ID: " + operator.getId());
+        return operator;
     }
 
     /**
@@ -107,6 +113,9 @@ public class OperatorService {
         token.setCreatedAt(Instant.now());
         token.setExpiresAt(jwtUtil.getExpiration(refreshToken).toInstant());
         operatorTokenRepository.save(token);
+
+        // 同步写入 Redis（便于快速校验）
+        redisTokenService.storeRefreshToken(TokenUtils.sha256Hex(refreshToken), "operator:" + operator.getId(), token.getExpiresAt());
 
         // 返回 access + refresh 给客户端
         var tokenVO = new TokenVO(accessToken, refreshToken, jwtUtil.getExpiration(accessToken));
@@ -189,23 +198,28 @@ public class OperatorService {
      * @return 
      */
     public ResponseEntity<String> logout(OperatorLogoutDTO dto) {
-        // blacklist access token
         var decoded = jwtUtil.verify(dto.getAccessToken());
         var jti = decoded.getId();
         var exp = decoded.getExpiresAt().toInstant();
+
+        // DB 记录
         AccessTokenBlacklist blacklist = new AccessTokenBlacklist();
         blacklist.setJti(jti);
         blacklist.setExpiresAt(exp);
         blacklist.setReason("Operator logout");
         blacklistRepository.save(blacklist);
 
-        // revoke refresh token
+        // Redis 黑名单
+        redisTokenService.blacklistAccessToken(jti, exp);
+
+        // 撤销 refresh（DB + Redis）
         var optional = operatorTokenRepository.findByRefreshTokenHashAndRevokedFalse(TokenUtils.sha256Hex(dto.getRefreshToken()));
         if (optional.isPresent()) {
             var token = optional.get();
             token.setRevoked(true);
             operatorTokenRepository.save(token);
         }
+        redisTokenService.revokeRefreshToken(TokenUtils.sha256Hex(dto.getRefreshToken()));
         return ResponseEntity.ok("Logged out successfully");
     }
 
@@ -278,18 +292,18 @@ public class OperatorService {
      * @return 
      */
     @Transactional
-    public ResponseEntity<String> adminResetPassword(AdminResetPasswordDTO dto) {
+    @CacheEvict(value = "operators:byId", key = "#dto.id")
+    public void adminResetPassword(AdminResetPasswordDTO dto) {
         // verify auth's permission
         Operator operator = operatorMapper.selectById(dto.getId());
         if (operator == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+            throw new IllegalArgumentException("Operator not found");
         }
         operator.setPasswordHash(passwordEncoder.encode(dto.getNewPassword()));
         int ret = operatorMapper.update(operator);
         if (ret != 1) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to reset password");
+            throw new IllegalStateException("Failed to reset password");
         }
-        return ResponseEntity.ok("Password reset successfully");
     }
 
     /**
@@ -299,26 +313,19 @@ public class OperatorService {
      * @return 
      */
     @Transactional
-    public ResponseEntity<String> adminUpdateProfile(Long id, UpdateOperatorDTO dto) {
+    @CacheEvict(value = {"operators:list", "operators:byId"}, key = "#id")
+    public Operator adminUpdateProfile(Long id, UpdateOperatorDTO dto) {
         // verify auth's permission
         Operator operator = operatorMapper.selectById(id);
         if (operator == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Operator not found");
+            throw new IllegalArgumentException("Operator not found");
         }
-        operator.setDisplayName(dto.getDisplayName());
-        operator.setPhone(dto.getPhone());
-        operator.setEmail(dto.getEmail());
-        operator.setAccountType(dto.getAccountType());
-        operator.setDepartment(dto.getDepartment());
-        operator.setTeam(dto.getTeam());
-        operator.setPosition(dto.getPosition());
-        operator.setLevel(dto.getLevel());
-        operator.setActive(dto.getActive());
+        updateOperatorFields(dto, operator);
         int ret = operatorMapper.update(operator);
         if (ret != 1) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to update profile");
+            throw new IllegalStateException("Failed to update profile");
         }
-        return ResponseEntity.ok("Profile updated successfully");
+        return operator;
     }
 
     /**
@@ -327,32 +334,38 @@ public class OperatorService {
      * @return
      */
     @Transactional
-    public ResponseEntity<OperatorVO> updateProfile(UpdateOperatorDTO dto) {
+    @CacheEvict(value = {"operators:list", "operators:byId"}, key = "#result.id")
+    public OperatorVO updateProfile(UpdateOperatorDTO dto) {
         var auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+            throw new SecurityException("Unauthorized");
         }
         String phone = auth.getName();
         Operator operator = operatorMapper.selectByPhone(phone);
         if (operator == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+            throw new IllegalArgumentException("Operator not found");
         }
-        operator.setDisplayName(dto.getDisplayName());
-        operator.setPhone(dto.getPhone());
-        operator.setEmail(dto.getEmail());
-        operator.setAccountType(dto.getAccountType());
-        operator.setDepartment(dto.getDepartment());
-        operator.setTeam(dto.getTeam());
-        operator.setPosition(dto.getPosition());
-        operator.setLevel(dto.getLevel());
+        updateOperatorFields(dto, operator);
+    
+        int ret = operatorMapper.update(operator);
+        if (ret != 1) {
+            throw new IllegalStateException("Failed to update profile");
+        }
+        return OperatorVO.fromEntity(operator);
+    }
+
+    private void updateOperatorFields(UpdateOperatorDTO dto, Operator operator) {
+        operator.setDisplayName(dto.getDisplayName() != null ? dto.getDisplayName() : operator.getDisplayName());
+        operator.setPhone(dto.getPhone() != null ? dto.getPhone() : operator.getPhone());
+        operator.setEmail(dto.getEmail() != null ? dto.getEmail() : operator.getEmail());
+        operator.setAccountType(dto.getAccountType() != null ? dto.getAccountType() : operator.getAccountType());
+        operator.setDepartment(dto.getDepartment() != null ? dto.getDepartment() : operator.getDepartment());
+        operator.setTeam(dto.getTeam() != null ? dto.getTeam() : operator.getTeam());
+        operator.setPosition(dto.getPosition() != null ? dto.getPosition() : operator.getPosition());
+        operator.setLevel(dto.getLevel() != null ? dto.getLevel() : operator.getLevel());
         if (dto.getActive() != null) {
             operator.setActive(dto.getActive());
         }
-        int ret = operatorMapper.update(operator);
-        if (ret != 1) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
-        }
-        return ResponseEntity.ok(OperatorVO.fromEntity(operator));
     }
 
     /**
@@ -362,18 +375,18 @@ public class OperatorService {
      * @return
      */
     @Transactional(readOnly = true)
-    public ResponseEntity<List<OperatorVO>> listOperators(int offset, int limit) {
+    @Cacheable(value = "operators:list", key = "#offset + ':' + #limit")
+    public List<OperatorVO> listOperators(int offset, int limit) {
         if (limit <= 0) {
             limit = DEFAULT_LIMIT;
         } else if (limit > MAX_LIMIT) {
             limit = MAX_LIMIT;
         }
         if (offset < 0) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+            return Collections.emptyList(); // 或者抛出异常
         }
         List<Operator> operators = operatorMapper.list(offset, limit);
-        List<OperatorVO> operatorVOs = operators.stream().map(OperatorVO::fromEntity).toList();
-        return ResponseEntity.ok(operatorVOs);
+        return operators.stream().map(OperatorVO::fromEntity).toList();
     }
 
     /**
@@ -382,22 +395,22 @@ public class OperatorService {
      * @return 
      */
     @Transactional(readOnly = true)
-    public ResponseEntity<List<OperatorVO>> query(Map<String, Object> params) {
+    public List<OperatorVO> query(Map<String, Object> params) {
         String offsetKey = "offset";
         String limitKey = "limit";
         if (params == null || params.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+            throw new IllegalArgumentException("Query params cannot be empty");
         }
         if (!params.containsKey(offsetKey)) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+            throw new IllegalArgumentException("Query params must contain offset");
         } else {
             int offset = (int) params.get(offsetKey);
             if (offset < 0) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+                throw new IllegalArgumentException("Offset must be non-negative");
             }
         }
         if (!params.containsKey(limitKey)) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+            throw new IllegalArgumentException("Query params must contain limit");
         } else {
             int limit = (int) params.get(limitKey);
             if (limit <= 0) {
@@ -407,8 +420,7 @@ public class OperatorService {
             }
         }
         List<Operator> operators = operatorMapper.query(params);
-        List<OperatorVO> operatorVOs = operators.stream().map(OperatorVO::fromEntity).toList();
-        return ResponseEntity.ok(operatorVOs);
+        return operators.stream().map(OperatorVO::fromEntity).toList();
     }
 
     /**
@@ -416,17 +428,18 @@ public class OperatorService {
      * @param id the operator ID
      * @return
      */
-    public ResponseEntity<String> delete(Long id) {
+    @Transactional
+    @CacheEvict(value = {"operators:list", "operators:byId"}, key = "#id")
+    public void delete(Long id) {
         // verify auth's permission
         Operator operator = operatorMapper.selectById(id);
         if (operator == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Operator not found");
+            throw new IllegalArgumentException("Operator not found");
         }
         int ret = operatorMapper.deleteById(id);
         if (ret != 1) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to delete operator");
+            throw new IllegalStateException("Failed to delete operator");
         }
-        return ResponseEntity.ok("Operator deleted successfully");
     }
 
     /**
@@ -434,11 +447,13 @@ public class OperatorService {
      * @param id the operator ID
      * @return
      */
-    public ResponseEntity<OperatorVO> getOperator(Long id) {
+    @Transactional(readOnly = true)
+    @Cacheable(value = "operators:byId", key = "#id")
+    public OperatorVO getOperator(Long id) {
         Operator operator = operatorMapper.selectById(id);
         if (operator == null) {
-            return ResponseEntity.notFound().build();
+            return null;
         }
-        return ResponseEntity.ok(OperatorVO.fromEntity(operator));
+        return OperatorVO.fromEntity(operator);
     }
 }

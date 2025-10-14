@@ -1,11 +1,12 @@
 package dev.ouanu.iems.entity;
 
+import java.io.Serializable;
 import java.time.Instant;
 import java.util.Arrays;
 
 import dev.ouanu.iems.constant.Permission;
 
-public class DevicePermission {
+public class DevicePermission implements Serializable {
     private Long deviceId;
     private String permissions; // 逗号分隔的权限字符串 
     private Instant createdAt;

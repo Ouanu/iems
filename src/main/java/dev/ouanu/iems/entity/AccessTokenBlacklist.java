@@ -1,5 +1,6 @@
 package dev.ouanu.iems.entity;
 
+import java.io.Serializable;
 import java.time.Instant;
 
 import org.springframework.data.annotation.Id;
@@ -14,7 +15,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Document(collection = "access_token_blacklist")
-public class AccessTokenBlacklist {
+public class AccessTokenBlacklist implements Serializable{
     @Id
     private String id;
 

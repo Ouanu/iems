@@ -1,5 +1,6 @@
 package dev.ouanu.iems.entity;
 
+import java.io.Serializable;
 import java.time.Instant;
 
 import org.springframework.data.annotation.Id;
@@ -14,7 +15,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Data
 @Document(collection = "device_tokens")
-public class DeviceToken {
+public class DeviceToken implements Serializable{
     @Id
     private String id;
     private Long deviceId;

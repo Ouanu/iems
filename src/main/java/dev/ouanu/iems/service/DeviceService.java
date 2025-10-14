@@ -6,6 +6,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -53,10 +55,11 @@ public class DeviceService {
     }
 
     @Transactional
-    public ResponseEntity<String> registerDevice(RegisterDeviceDTO dto) {
+    @CacheEvict(value = {"devices:list","devices:byId","devices:byUuid"}, allEntries = true)
+    public Device registerDevice(RegisterDeviceDTO dto) {
         var dm = deviceMapper.selectByMacAddress(dto.getMacAddress());
         if (dm != null) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body("Device with this MAC address already exists");
+            throw new IllegalStateException("Device with this MAC address already exists");
         }
         Device device = RegisterDeviceDTO.toEntity(dto);
         device.setId(snowflakeIdService.nextIdAndPersist(BizType.DEVICE));
@@ -66,20 +69,21 @@ public class DeviceService {
         if (device.getLocked() == null) device.setLocked(false);
         int ret = deviceMapper.insert(device);
         if (ret != 1) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to create device");
+            throw new IllegalStateException("Failed to create device");
         }
         var retP = permissionService.createPermission(device.getId(), Permission.DEVICE_READ_ITSELF, Permission.DEVICE_UPDATE_ITSELF, Permission.DEVICE_WRITE_ITSELF);
         if (retP) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to create device permissions");
+            throw new IllegalStateException("Failed to create device permissions");
         }
-        return ResponseEntity.status(HttpStatus.CREATED).body("Device created with ID: " + device.getId());
+        return device;
     }
 
     @Transactional
-    public ResponseEntity<String> updateDevice(Long id, UpdateDeviceDTO dto) {
+    @CacheEvict(value = {"devices:list", "devices:byId", "devices:byUuid"}, key = "#id")
+    public Device updateDevice(Long id, UpdateDeviceDTO dto) {
         Device device = deviceMapper.selectById(id);
         if (device == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Device not found");
+            throw new IllegalArgumentException("Device not found");
         }
         device.setActive(dto.getActive());
         device.setLocked(dto.getLocked());
@@ -91,24 +95,25 @@ public class DeviceService {
         device.setRomVersion(dto.getRomVersion());
         int ret = deviceMapper.update(device);
         if (ret != 1) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to update device");
+            throw new IllegalStateException("Failed to update device");
         }
-        return ResponseEntity.ok("Device updated successfully");
+        return device;
     }
 
     @Transactional
-    public ResponseEntity<String> updateMyProfile(UpdateDeviceDTO dto) {
+    @CacheEvict(value = {"devices:byId", "devices:byUuid"}, key = "#result.id")
+    public String updateMyProfile(UpdateDeviceDTO dto) {
         var auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null || auth.getPrincipal() == null || !(auth.getPrincipal() instanceof Long)) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Unauthorized");
+            throw new SecurityException("Unauthorized");
         }
         Long deviceId = (Long) auth.getPrincipal();
         Device device = deviceMapper.selectById(deviceId);
         if (device == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Device not found");
+            throw new IllegalArgumentException("Device not found");
         }
-        if (!device.getActive() || device.getLocked()) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Device is inactive or locked");    
+        if (Boolean.FALSE.equals(device.getActive()) || Boolean.TRUE.equals(device.getLocked())) {
+            throw new SecurityException("Device is inactive or locked");
         }
         device.setModel(dto.getModel());
         device.setBrand(dto.getBrand());
@@ -118,56 +123,58 @@ public class DeviceService {
         device.setRomVersion(dto.getRomVersion());
         int ret = deviceMapper.update(device);
         if (ret != 1) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to update device");
+            throw new IllegalStateException("Failed to update device");
         }
-        return ResponseEntity.ok("Device updated successfully");
+        return "Device updated successfully";
     }
 
     @Transactional(readOnly = true)
-    public ResponseEntity<DeviceVO> getDeviceById(Long id) {
+    @Cacheable(value = "devices:byId", key = "#id")
+    public DeviceVO getDeviceById(Long id) {
         Device device = deviceMapper.selectById(id);
         if (device == null) {
-            return ResponseEntity.notFound().build();
+            return null;
         }
-        return ResponseEntity.ok(DeviceVO.fromEntity(device));
+        return DeviceVO.fromEntity(device);
     }
 
     @Transactional(readOnly = true)
-    public ResponseEntity<DeviceVO> getDeviceByUuid(String uuid) {
+    @Cacheable(value = "devices:byUuid", key = "#uuid")
+    public DeviceVO getDeviceByUuid(String uuid) {
         Device device = deviceMapper.selectByUuid(uuid);
         if (device == null) {
-            return ResponseEntity.notFound().build();
+            return null;
         }
-        return ResponseEntity.ok(DeviceVO.fromEntity(device));
+        return DeviceVO.fromEntity(device);
     }
 
     @Transactional(readOnly = true)
-    public ResponseEntity<List<DeviceVO>> listDevices(int offset, int limit) {
+    @Cacheable(value = "devices:list", key = "#offset + ':' + #limit")
+    public List<DeviceVO> listDevices(int offset, int limit) {
         if (limit <= 0) {
             limit = DEFAULT_LIMIT;
         } else if (limit > MAX_LIMIT) {
             limit = MAX_LIMIT;
         }
         if (offset < 0) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+            throw new IllegalArgumentException("Offset must be non-negative");
         }
         List<Device> devices = deviceMapper.list(offset, limit);
         
-        List<DeviceVO> voList = devices.stream().map(DeviceVO::fromEntity).toList();
-        return ResponseEntity.ok(voList);
+        return devices.stream().map(DeviceVO::fromEntity).toList();
     }
 
     @Transactional(readOnly = true)
-    public ResponseEntity<List<DeviceVO>> queryDevices(Map<String, Object> params) {
+    public List<DeviceVO> queryDevices(Map<String, Object> params) {
         String offsetKey = "offset";
         String limitKey = "limit";
         if (params == null || params.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+            throw new IllegalArgumentException("Query params cannot be empty");
         }
         // validate offset/limit if provided
         if (params.containsKey(offsetKey)) {
             int offset = (int) params.get(offsetKey);
-            if (offset < 0) return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+            if (offset < 0) throw new IllegalArgumentException("Offset must be non-negative");
         }
         if (params.containsKey(limitKey)) {
             int limit = (int) params.get(limitKey);
@@ -175,21 +182,20 @@ public class DeviceService {
             else if (limit > MAX_LIMIT) params.put(limitKey, MAX_LIMIT);
         }
         List<Device> devices = deviceMapper.query(params);
-        List<DeviceVO> voList = devices.stream().map(DeviceVO::fromEntity).toList();
-        return ResponseEntity.ok(voList);
+        return devices.stream().map(DeviceVO::fromEntity).toList();
     }
 
     @Transactional
-    public ResponseEntity<String> deleteDevice(Long id) {
+    @CacheEvict(value = {"devices:list","devices:byId","devices:byUuid"}, allEntries = true)
+    public void deleteDevice(Long id) {
         Device device = deviceMapper.selectById(id);
         if (device == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Device not found");
+            throw new IllegalArgumentException("Device not found");
         }
         int ret = deviceMapper.deleteById(id);
         if (ret != 1) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to delete device");
+            throw new IllegalStateException("Failed to delete device");
         }
-        return ResponseEntity.ok("Device deleted successfully");
     }
 
     // --- Authentication / token management for devices ---

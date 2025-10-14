@@ -1,5 +1,7 @@
 package dev.ouanu.iems.vo;
 
+import java.io.Serializable;
+
 import org.springframework.beans.BeanUtils;
 
 import dev.ouanu.iems.entity.Device;
@@ -10,7 +12,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class DeviceSimpleVO {
+public class DeviceSimpleVO implements Serializable{
     private String uuid;
     private String macAddress;
     private Long customerId;

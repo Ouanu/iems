@@ -1,5 +1,6 @@
 package dev.ouanu.iems.entity;
 
+import java.io.Serializable;
 import java.util.Map;
 
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -12,7 +13,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Document(collection = "apks")
-public class Apk {
+public class Apk implements Serializable{
     private String id;
     private String packageName;
     private String iconPath;

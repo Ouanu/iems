@@ -5,6 +5,7 @@ import java.nio.file.Paths;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.lang.NonNull;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
@@ -15,7 +16,7 @@ public class MvcConfig implements WebMvcConfigurer {
     private String storageDir;
 
     @Override
-    public void addResourceHandlers(ResourceHandlerRegistry registry) {
+    public void addResourceHandlers(@NonNull ResourceHandlerRegistry registry) {
         Path storagePath = Paths.get(storageDir).toAbsolutePath();
         String resourceLocation = storagePath.toUri().toString();
         registry.addResourceHandler("/storage/**")

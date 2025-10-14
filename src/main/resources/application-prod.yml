@@ -23,3 +23,14 @@ logging:
   level:
     root: INFO
     dev.ouanu.iems: INFO
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:} # Add Redis password
+      timeout: 2s # Use standard duration format
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 0

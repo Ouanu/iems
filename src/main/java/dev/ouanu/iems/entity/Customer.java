@@ -1,5 +1,6 @@
 package dev.ouanu.iems.entity;
 
+import java.io.Serializable;
 import java.time.Instant;
 
 import lombok.AllArgsConstructor;
@@ -7,7 +8,7 @@ import lombok.NoArgsConstructor;
 
 @AllArgsConstructor
 @NoArgsConstructor
-public class Customer {
+public class Customer implements Serializable{
     private Long id;
     private String uuid;
     private String passwordHash;

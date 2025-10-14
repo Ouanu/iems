@@ -5,6 +5,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -13,6 +14,8 @@ import java.util.Optional;
 
 import org.apache.commons.codec.digest.DigestUtils;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -28,7 +31,7 @@ import dev.ouanu.iems.entity.Apk;
 import dev.ouanu.iems.repository.ApkRepository;
 import net.dongliu.apk.parser.ApkFile;
 import net.dongliu.apk.parser.bean.ApkMeta;
-import net.dongliu.apk.parser.bean.Icon;
+import net.dongliu.apk.parser.bean.IconFace;
 
 @Service
 public class ApkService {
@@ -36,6 +39,11 @@ public class ApkService {
     private final Path apkStorageLocation;
     private final Path iconStorageLocation;
     private final MongoTemplate mongoTemplate;
+
+    private static final String FIELD_PACKAGE_NAME = "packageName";
+    private static final String FIELD_VERSION_NAME = "versionName";
+    private static final String FIELD_ORGANIZATION = "organization";
+    private static final String FIELD_GROUP = "group";
 
     public ApkService(ApkRepository apkRepository,
                       MongoTemplate mongoTemplate,
@@ -53,6 +61,44 @@ public class ApkService {
         }
     }
 
+    @Cacheable(value = "apks:all", key = "'all'")
+    public List<Apk> getAllApks() {
+        return apkRepository.findAll();
+    }
+
+    @Cacheable(value = "apks:byId", key = "#id")
+    public Optional<Apk> findById(String id) {
+        return apkRepository.findById(id);
+    }
+
+    @Cacheable(value = "apks:query", key = "T(java.lang.String).valueOf(#criteria.hashCode())")
+    public List<Apk> queryApks(ApkSearchCriteria criteria) {
+        Query query = new Query();
+        boolean isFuzzy = criteria.fuzzy() != null && criteria.fuzzy();
+
+        addCriteriaToQuery(query, FIELD_PACKAGE_NAME, criteria.packageName(), isFuzzy);
+        addCriteriaToQuery(query, FIELD_VERSION_NAME, criteria.versionName(), isFuzzy);
+        addCriteriaToQuery(query, FIELD_ORGANIZATION, criteria.organization(), isFuzzy);
+        addCriteriaToQuery(query, FIELD_GROUP, criteria.group(), isFuzzy);
+        
+        // 使用 limit+1 来判断是否有下一页，但返回给前端的仍然是 limit 数量
+        Pageable pageable = PageRequest.of(criteria.offset() / criteria.limit(), criteria.limit());
+        query.with(pageable);
+
+        return mongoTemplate.find(query, Apk.class);
+    }
+
+    private void addCriteriaToQuery(Query query, String fieldName, String value, boolean isFuzzy) {
+        if (StringUtils.hasText(value)) {
+            if (isFuzzy) {
+                query.addCriteria(Criteria.where(fieldName).regex(value, "i"));
+            } else {
+                query.addCriteria(Criteria.where(fieldName).is(value));
+            }
+        }
+    }
+
+    @CacheEvict(value = {"apks:all","apks:byId","apks:query"}, allEntries = true)
     public Apk processAndSaveApk(MultipartFile file, String organization, String group) throws IOException {
         // 1. Save uploaded file to a temporary location first.
         Path tempFile = Files.createTempFile("iems-upload-", ".apk");
@@ -66,7 +112,6 @@ public class ApkService {
             String iconExtension = ".png"; // Default extension
 
             // 2. Parse metadata from the temporary file.
-            Path savedIconPath = null;
             try (ApkFile apkFile = new ApkFile(tempFile.toFile())) {
                 ApkMeta defaultApkMeta = apkFile.getApkMeta();
                 packageName = defaultApkMeta.getPackageName();
@@ -90,18 +135,18 @@ public class ApkService {
                 apk.setLabels(localizedLabels);
 
                 // 2.1 Check if packageName already exists in DB -> if yes, remove uploaded files and throw
-                boolean exists = mongoTemplate.exists(Query.query(Criteria.where("packageName").is(packageName)), Apk.class);
+                boolean exists = mongoTemplate.exists(Query.query(Criteria.where(FIELD_PACKAGE_NAME).is(packageName)), Apk.class);
                 if (exists) {
-                    // remove saved icon if any
-                    if (savedIconPath != null) {
-                        try { Files.deleteIfExists(savedIconPath); } catch (IOException ignored) {}
-                    }
                     throw new IllegalStateException("Apk已存在: " + packageName);
                 }
                 // --- Icon Extraction ---
-                Icon icon = apkFile.getIconFile();
-                if (icon != null) {
-                    String iconPath = icon.getPath();
+                IconFace iconFace = apkFile.getAllIcons().stream()
+                    .filter(IconFace::isFile)
+                    .max(Comparator.comparingInt(icon -> icon.getData().length))
+                    .orElse(null);
+
+                if (iconFace != null) {
+                    String iconPath = iconFace.getPath();
                     int dotIndex = iconPath.lastIndexOf('.');
                     if (dotIndex > 0) {
                         iconExtension = iconPath.substring(dotIndex);
@@ -109,8 +154,7 @@ public class ApkService {
                     // Use a unique name for the icon file
                     String iconFileName = String.format("%s-v%d%s", packageName, versionCode, iconExtension);
                     Path iconTargetPath = this.iconStorageLocation.resolve(iconFileName).normalize();
-                    Files.write(iconTargetPath, icon.getData());
-                    savedIconPath = iconTargetPath;
+                    Files.write(iconTargetPath, iconFace.getData());
                     apk.setIconPath(iconStorageLocation.getParent().relativize(iconTargetPath).toString().replace('\\', '/'));
                 }
             }
@@ -141,54 +185,7 @@ public class ApkService {
         }
     }
 
-    public List<Apk> getAllApks() {
-        return apkRepository.findAll();
-    }
-
-    public Optional<Apk> findById(String id) {
-        return apkRepository.findById(id);
-    }
-
-    public List<Apk> queryApks(ApkSearchCriteria criteria) {
-        Query query = new Query();
-        boolean isFuzzy = criteria.fuzzy() != null && criteria.fuzzy();
-
-        if (StringUtils.hasText(criteria.packageName())) {
-            if (isFuzzy) {
-                query.addCriteria(Criteria.where("packageName").regex(criteria.packageName(), "i"));
-            } else {
-                query.addCriteria(Criteria.where("packageName").is(criteria.packageName()));
-            }
-        }
-        if (StringUtils.hasText(criteria.versionName())) {
-            if (isFuzzy) {
-                query.addCriteria(Criteria.where("versionName").regex(criteria.versionName(), "i"));
-            } else {
-                query.addCriteria(Criteria.where("versionName").is(criteria.versionName()));
-            }
-        }
-        if (StringUtils.hasText(criteria.organization())) {
-            if (isFuzzy) {
-                query.addCriteria(Criteria.where("organization").regex(criteria.organization(), "i"));
-            } else {
-                query.addCriteria(Criteria.where("organization").is(criteria.organization()));
-            }
-        }
-        if (StringUtils.hasText(criteria.group())) {
-            if (isFuzzy) {
-                query.addCriteria(Criteria.where("group").regex(criteria.group(), "i"));
-            } else {
-                query.addCriteria(Criteria.where("group").is(criteria.group()));
-            }
-        }
-        
-        // 使用 limit+1 来判断是否有下一页，但返回给前端的仍然是 limit 数量
-        Pageable pageable = PageRequest.of(criteria.offset() / criteria.limit(), criteria.limit());
-        query.with(pageable);
-
-        return mongoTemplate.find(query, Apk.class);
-    }
-
+    @CacheEvict(value = {"apks:all","apks:byId","apks:query"}, allEntries = true)
     public Apk updateApk(String id, ApkUpdateRequest updateRequest) {
         Apk existingApk = apkRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Apk not found with id: " + id));
@@ -199,6 +196,7 @@ public class ApkService {
         return apkRepository.save(existingApk);
     }
 
+    @CacheEvict(value = {"apks:all","apks:byId","apks:query"}, allEntries = true)
     public void deleteApk(String id) throws IOException {
         Apk apk = apkRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Apk not found with id: " + id));

@@ -1,11 +1,12 @@
 package dev.ouanu.iems.entity;
 
+import java.io.Serializable;
 import java.time.Instant;
 import java.util.Arrays;
 
 import dev.ouanu.iems.constant.Permission;
 
-public class IdPermission {
+public class IdPermission implements Serializable{
     private Long id;
     private String permissions; // 改为字符串存储逗号分隔的权限
     private Instant createdAt;

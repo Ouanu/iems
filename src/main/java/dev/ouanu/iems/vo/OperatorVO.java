@@ -1,5 +1,6 @@
 package dev.ouanu.iems.vo;
 
+import java.io.Serializable;
 import java.time.Instant;
 
 import org.springframework.beans.BeanUtils;
@@ -15,7 +16,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class OperatorVO {
+public class OperatorVO implements Serializable{
     @JsonSerialize(using = ToStringSerializer.class)
     private Long id;
     private String uuid;

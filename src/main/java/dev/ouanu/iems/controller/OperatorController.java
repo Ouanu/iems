@@ -1,9 +1,11 @@
 package dev.ouanu.iems.controller;
 
 import java.util.List;
+import java.util.Map;
 
 import javax.validation.Valid;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -22,6 +24,7 @@ import dev.ouanu.iems.dto.ChangePasswordDTO;
 import dev.ouanu.iems.dto.OperatorLogoutDTO;
 import dev.ouanu.iems.dto.RegisterOperatorDTO;
 import dev.ouanu.iems.dto.UpdateOperatorDTO;
+import dev.ouanu.iems.entity.Operator;
 import dev.ouanu.iems.service.OperatorService;
 import dev.ouanu.iems.vo.OperatorVO;
 import dev.ouanu.iems.vo.TokenVO;
@@ -43,17 +46,31 @@ public class OperatorController {
 
     // Create operator (admin)
     @PreAuthorize("hasAuthority('operator:write')")
-    @PostMapping(path = "/admin/operators", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.TEXT_PLAIN_VALUE)
-    public ResponseEntity<String> createOperator(@Valid @RequestBody RegisterOperatorDTO dto) {
-        return operatorService.createOperator(dto);
+    @PostMapping(path = "/admin/operators", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<OperatorVO> createOperator(@Valid @RequestBody RegisterOperatorDTO dto) {
+        try {
+            Operator operator = operatorService.createOperator(dto);
+            return ResponseEntity.status(HttpStatus.CREATED).body(OperatorVO.fromEntity(operator));
+        } catch (IllegalStateException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(null);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
     }
 
     // Admin update profile
     @PreAuthorize("hasAuthority('operator:write')")
-    @PutMapping(path = "/admin/operators/{id}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.TEXT_PLAIN_VALUE)
-    public ResponseEntity<String> adminUpdateProfile(@PathVariable("id") Long id,
+    @PutMapping(path = "/admin/operators/{id}", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<OperatorVO> adminUpdateProfile(@PathVariable("id") Long id,
                                                      @Valid @RequestBody UpdateOperatorDTO dto) {
-        return operatorService.adminUpdateProfile(id, dto);
+        try {
+            Operator operator = operatorService.adminUpdateProfile(id, dto);
+            return ResponseEntity.ok(OperatorVO.fromEntity(operator));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
     }
 
     // Admin reset password
@@ -63,14 +80,30 @@ public class OperatorController {
                                                      @Valid @RequestBody AdminResetPasswordDTO dto) {
         // ensure dto.id matches path id (or set it)
         dto.setId(id);
-        return operatorService.adminResetPassword(dto);
+        try {
+            operatorService.adminResetPassword(dto);
+            return ResponseEntity.ok("Password reset successfully");
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+        }
     }
 
     // Operator update own profile
     @PreAuthorize("hasAuthority('operator:write')")
     @PutMapping(path = "/admin/operators/me", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<OperatorVO> updateProfile(@Valid @RequestBody UpdateOperatorDTO dto) {
-        return operatorService.updateProfile(dto);
+        try {
+            OperatorVO updatedOperator = operatorService.updateProfile(dto);
+            return ResponseEntity.ok(updatedOperator);
+        } catch (SecurityException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
     }
 
     // ----------------- Authentication / Token -----------------
@@ -143,28 +176,48 @@ public class OperatorController {
     public ResponseEntity<List<OperatorVO>> listOperators(
             @RequestParam(name = "offset", required = false, defaultValue = "0") int offset,
             @RequestParam(name = "limit", required = false, defaultValue = "20") int limit) {
-        return operatorService.listOperators(offset, limit);
+        List<OperatorVO> operatorVOs = operatorService.listOperators(offset, limit);
+        if (operatorVOs == null) {
+            return ResponseEntity.badRequest().build();
+        }
+        return ResponseEntity.ok(operatorVOs);
     }
 
     // Query operators (admin) with a JSON body of params
     @PreAuthorize("hasAuthority('operator:read')")
     @PostMapping(path = "/admin/operators/query", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<List<OperatorVO>> queryOperators(@RequestBody(required = false) java.util.Map<String, Object> params) {
-        return operatorService.query(params);
+    public ResponseEntity<List<OperatorVO>> queryOperators(@RequestBody(required = false) Map<String, Object> params) {
+        try {
+            List<OperatorVO> operators = operatorService.query(params);
+            return ResponseEntity.ok(operators);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().build();
+        }
     }
 
     // Delete operator (admin)
     @PreAuthorize("hasAuthority('operator:delete')")
     @DeleteMapping(path = "/admin/operators/{id}", produces = MediaType.TEXT_PLAIN_VALUE)
     public ResponseEntity<String> deleteOperator(@PathVariable("id") Long id) {
-        return operatorService.delete(id);
+        try {
+            operatorService.delete(id);
+            return ResponseEntity.ok("Operator deleted successfully");
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+        }
     }
 
     // Get operator by ID (admin)
     @PreAuthorize("hasAuthority('operator:read')")
     @GetMapping(path = "/admin/operators/{id}")
     public ResponseEntity<OperatorVO> getOperator(@PathVariable("id") Long id) {
-        return operatorService.getOperator(id);
+        OperatorVO operator = operatorService.getOperator(id);
+        if (operator == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(operator);
     }
 
     

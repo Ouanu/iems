@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 import dev.ouanu.iems.dto.DeviceLogoutDTO;
 import dev.ouanu.iems.dto.RegisterDeviceDTO;
 import dev.ouanu.iems.dto.UpdateDeviceDTO;
+import dev.ouanu.iems.entity.Device;
 import dev.ouanu.iems.service.DeviceService;
 import dev.ouanu.iems.vo.DeviceVO;
 import dev.ouanu.iems.vo.TokenVO;
@@ -39,9 +40,16 @@ public class DeviceController {
 
     // Create device (admin)
     @PreAuthorize("hasAuthority('operator:write')")
-    @PostMapping(path = "/admin/devices", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.TEXT_PLAIN_VALUE)
-    public ResponseEntity<String> createDevice(@Valid @RequestBody RegisterDeviceDTO dto) {
-        return deviceService.registerDevice(dto);
+    @PostMapping(path = "/admin/devices", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<?> createDevice(@Valid @RequestBody RegisterDeviceDTO dto) {
+        try {
+            Device device = deviceService.registerDevice(dto);
+            return ResponseEntity.status(HttpStatus.CREATED).body(DeviceVO.fromEntity(device));
+        } catch (IllegalStateException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+        }
     }
 
     @AllArgsConstructor
@@ -58,10 +66,17 @@ public class DeviceController {
 
     // Admin update device by id
     @PreAuthorize("hasAuthority('operator:write')")
-    @PutMapping(path = "/admin/devices/{id}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.TEXT_PLAIN_VALUE)
-    public ResponseEntity<String> adminUpdateDevice(@PathVariable("id") Long id,
+    @PutMapping(path = "/admin/devices/{id}", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<?> adminUpdateDevice(@PathVariable("id") Long id,
                                                     @Valid @RequestBody UpdateDeviceDTO dto) {
-        return deviceService.updateDevice(id, dto);
+        try {
+            Device device = deviceService.updateDevice(id, dto);
+            return ResponseEntity.ok(DeviceVO.fromEntity(device));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+        }
     }
 
     // List devices (admin)
@@ -70,7 +85,12 @@ public class DeviceController {
     public ResponseEntity<List<DeviceVO>> listDevices(
             @RequestParam(name = "offset", required = false, defaultValue = "0") int offset,
             @RequestParam(name = "limit", required = false, defaultValue = "20") int limit) {
-        return deviceService.listDevices(offset, limit);
+        try {
+            List<DeviceVO> devices = deviceService.listDevices(offset, limit);
+            return ResponseEntity.ok(devices);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().build();
+        }
     }
 
     // Query devices (admin)
@@ -78,7 +98,12 @@ public class DeviceController {
     @PostMapping(path = "/admin/devices/query", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<DeviceVO>> queryDevices(@RequestBody(required = false) Map<String, Object> params) {
         System.out.println("Querying devices with params: " + params);
-        return deviceService.queryDevices(params);
+        try {
+            List<DeviceVO> devices = deviceService.queryDevices(params);
+            return ResponseEntity.ok(devices);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().build();
+        }
     }
 
     // Delete device (admin)
@@ -86,20 +111,29 @@ public class DeviceController {
     @DeleteMapping(path = "/admin/devices/{id}", produces = MediaType.TEXT_PLAIN_VALUE)
     public ResponseEntity<String> deleteDevice(@PathVariable("id") Long id) {
         System.out.println("Deleting device with id: " + id);
-        return deviceService.deleteDevice(id);
+        try {
+            deviceService.deleteDevice(id);
+            return ResponseEntity.ok("Device deleted successfully");
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+        }
     }
 
     // Get device by id (admin)
     @PreAuthorize("hasAuthority('operator:read')")
     @GetMapping(path = "/admin/devices/{id}")
     public ResponseEntity<DeviceVO> getDevice(@PathVariable("id") Long id) {
-        return deviceService.getDeviceById(id);
+        DeviceVO device = deviceService.getDeviceById(id);
+        return device != null ? ResponseEntity.ok(device) : ResponseEntity.notFound().build();
     }
 
     // Get device by uuid (public/admin)
     @GetMapping(path = "/devices/uuid/{uuid}")
     public ResponseEntity<DeviceVO> getDeviceByUuid(@PathVariable("uuid") String uuid) {
-        return deviceService.getDeviceByUuid(uuid);
+        DeviceVO device = deviceService.getDeviceByUuid(uuid);
+        return device != null ? ResponseEntity.ok(device) : ResponseEntity.notFound().build();
     }
 
     @GetMapping(path = "/devices/auth/verify/{macAddress}")
@@ -119,11 +153,18 @@ public class DeviceController {
         }
     }
 
-    @PostMapping(path="/devices/auth", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.TEXT_PLAIN_VALUE)
-    public ResponseEntity<String> register(@Valid @RequestBody RegisterRequest request) {
+    @PostMapping(path="/devices/auth", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<?> register(@Valid @RequestBody RegisterRequest request) {
         RegisterDeviceDTO dto = new RegisterDeviceDTO(request.macAddress, request.signatureHash, true, false, request.model,
                 request.brand, request.serialno, request.androidVersion, request.appVersion, request.romVersion);
-        return deviceService.registerDevice(dto);
+        try {
+            Device device = deviceService.registerDevice(dto);
+            return ResponseEntity.status(HttpStatus.CREATED).body(DeviceVO.fromEntity(device));
+        } catch (IllegalStateException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+        }
     }
 
     @PostMapping(path = "/devices/auth/login", consumes = MediaType.APPLICATION_JSON_VALUE)
@@ -172,11 +213,20 @@ public class DeviceController {
     }
 
     @PreAuthorize("hasAuthority('device:write:self')")
-    @PutMapping(path="/devices/auth/me", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @PutMapping(path="/devices/auth/me", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.TEXT_PLAIN_VALUE)
     public ResponseEntity<String> updateDeviceAuth(@Valid @RequestBody UpdateDeviceRequest dto) {
         var updateDto = new UpdateDeviceDTO(dto.model, dto.brand, dto.serialno, dto.androidVersion,
                 dto.appVersion, dto.romVersion, true, false);
-        return deviceService.updateMyProfile(updateDto);
+        try {
+            String result = deviceService.updateMyProfile(updateDto);
+            return ResponseEntity.ok(result);
+        } catch (SecurityException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+        }
     }
 
     public static class DeviceResponse {

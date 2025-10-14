@@ -34,20 +34,18 @@ public class ApkController {
 
     @PreAuthorize("hasAuthority('app:manage')")
     @PostMapping("/upload")
-    public ResponseEntity<?> uploadApk(
+    public ResponseEntity<Apk> uploadApk(
             @RequestParam("file") MultipartFile file,
             @RequestParam("organization") String organization,
             @RequestParam("group") String group) {
         if (file.isEmpty()) {
-            return ResponseEntity.badRequest().body("File is empty");
+            return ResponseEntity.badRequest().body(null);
         }
         try {
             Apk savedApk = apkService.processAndSaveApk(file, organization, group);
             return ResponseEntity.status(HttpStatus.CREATED).body(savedApk);
         } catch (IOException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to process APK: " + e.getMessage());
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An unexpected error occurred: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }
 
@@ -87,7 +85,7 @@ public class ApkController {
         try {
             apkService.deleteApk(id);
             return ResponseEntity.noContent().build();
-        } catch (Exception e) {
+        } catch (IOException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }

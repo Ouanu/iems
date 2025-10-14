@@ -1,5 +1,6 @@
 package dev.ouanu.iems.entity;
 
+import java.io.Serializable;
 import java.time.Instant;
 
 import lombok.AllArgsConstructor;
@@ -9,7 +10,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class Device {
+public class Device implements Serializable{
     private Long id;
     private String uuid;
     private String macAddress; // MAC 地址

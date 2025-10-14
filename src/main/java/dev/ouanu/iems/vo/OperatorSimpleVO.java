@@ -1,5 +1,7 @@
 package dev.ouanu.iems.vo;
 
+import java.io.Serializable;
+
 import org.springframework.beans.BeanUtils;
 
 import dev.ouanu.iems.entity.Operator;
@@ -10,7 +12,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class OperatorSimpleVO {
+public class OperatorSimpleVO implements Serializable{
     private String uuid;
     private String displayName;
     private String phone;

@@ -1,5 +1,6 @@
 package dev.ouanu.iems.vo;
 
+import java.io.Serializable;
 import java.time.Instant;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
@@ -13,7 +14,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class PermissionVO {
+public class PermissionVO implements Serializable{
     @JsonSerialize(using = ToStringSerializer.class)
     private Long id;
     private String permissions;

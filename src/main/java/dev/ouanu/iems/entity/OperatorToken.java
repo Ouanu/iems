@@ -1,5 +1,6 @@
 package dev.ouanu.iems.entity;
 
+import java.io.Serializable;
 import java.time.Instant;
 
 import org.springframework.data.annotation.Id;
@@ -14,7 +15,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Document(collection = "operator_tokens")
-public class OperatorToken {
+public class OperatorToken implements Serializable{
     // 改为 String（Mongo 文档 id），由 Mongo 或应用生成 UUID
     @Id
     private String id;
