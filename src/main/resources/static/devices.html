@@ -420,7 +420,8 @@
         let currentSearchQuery = null;
         // Permission group for devices (self permissions)
         const PERMISSION_GROUPS = {
-            DEVICE_SELF: ['device:write:self', 'device:update:self', 'device:read:self']
+            DEVICE_SELF: ['device:write:self', 'device:update:self', 'device:read:self'],
+            APP: ['app:read'],
         };
     const ALL_PERMISSION_GROUP_KEYS = Object.keys(PERMISSION_GROUPS);
     let deviceCache = {};

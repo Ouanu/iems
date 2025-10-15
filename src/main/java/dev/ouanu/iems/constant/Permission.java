@@ -43,6 +43,9 @@ public enum Permission {
 
     public static Permission fromType(String type) {
         for (Permission p : Permission.values()) {
+            if (p.types.size() > 1) {
+                continue;
+            }
             if (p.types.contains(type)) {
                 return p;
             }
