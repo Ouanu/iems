@@ -1,7 +1,10 @@
 package dev.ouanu.iems.controller;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
+
+import javax.validation.Valid;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,8 +22,13 @@ import org.springframework.web.multipart.MultipartFile;
 
 import dev.ouanu.iems.dto.ApkSearchCriteria;
 import dev.ouanu.iems.dto.ApkUpdateRequest;
+import dev.ouanu.iems.dto.BatchUpdateApksRequest;
 import dev.ouanu.iems.entity.Apk;
 import dev.ouanu.iems.service.ApkService;
+import dev.ouanu.iems.vo.ApkVO;
+import org.springframework.util.StringUtils;
+import org.springframework.http.MediaType;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 @RestController
 @RequestMapping("/api/apks")
@@ -64,9 +72,34 @@ public class ApkController {
     }
 
     @PreAuthorize("hasAuthority('app:read')")
+    @GetMapping("/summary")
+    public ResponseEntity<List<ApkVO>> listApkSummaries() {
+        String baseUrl = ServletUriComponentsBuilder.fromCurrentContextPath().build().toUriString();
+        List<ApkVO> summaries = apkService.getAllApks().stream()
+                .map(apk -> ApkVO.fromEntity(apk, baseUrl))
+                .toList();
+        return ResponseEntity.ok(summaries);
+    }
+
+    @PreAuthorize("hasAuthority('app:read')")
     @PostMapping("/query")
     public ResponseEntity<List<Apk>> queryApks(@RequestBody ApkSearchCriteria criteria) {
         return ResponseEntity.ok(apkService.queryApks(criteria));
+    }
+
+    @PreAuthorize("hasAuthority('app:manage')")
+    @PutMapping(path = "/batch", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.TEXT_PLAIN_VALUE)
+    public ResponseEntity<String> batchUpdateApks(@Valid @RequestBody BatchUpdateApksRequest request) {
+        request.normalize();
+        if (!request.hasUpdates()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("请至少提供一个需要更新的字段");
+        }
+        try {
+            apkService.adminBatchUpdateApks(request.getIds(), request.getOrganization(), request.getGroup());
+            return ResponseEntity.ok("批量更新成功");
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
     }
 
     @PreAuthorize("hasAuthority('app:manage')")
@@ -87,6 +120,29 @@ public class ApkController {
             return ResponseEntity.noContent().build();
         } catch (IOException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    @PreAuthorize("hasAuthority('app:manage')")
+    @DeleteMapping
+    public ResponseEntity<String> deleteApks(@RequestParam("ids") String idsParam) {
+        if (!StringUtils.hasText(idsParam)) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("ids参数不能为空");
+        }
+        List<String> ids = Arrays.stream(idsParam.split(","))
+                .map(String::trim)
+                .filter(StringUtils::hasText)
+                .toList();
+        if (ids.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("未提供有效的ID");
+        }
+        try {
+            apkService.deleteApks(ids);
+            return ResponseEntity.ok("批量删除成功");
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("删除APK文件失败");
         }
     }
 }

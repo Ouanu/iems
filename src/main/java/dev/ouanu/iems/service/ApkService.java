@@ -7,21 +7,22 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 import org.apache.commons.codec.digest.DigestUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -41,9 +42,13 @@ public class ApkService {
     private final MongoTemplate mongoTemplate;
 
     private static final String FIELD_PACKAGE_NAME = "packageName";
+    private static final String FIELD_APP_NAME = "labels.default";
     private static final String FIELD_VERSION_NAME = "versionName";
     private static final String FIELD_ORGANIZATION = "organization";
     private static final String FIELD_GROUP = "group";
+    private static final int DEFAULT_LIMIT = 20;
+    private static final int MAX_LIMIT = 200;
+    private static final String APK_NOT_FOUND_MESSAGE = "Apk not found with id: ";
 
     public ApkService(ApkRepository apkRepository,
                       MongoTemplate mongoTemplate,
@@ -76,14 +81,21 @@ public class ApkService {
         Query query = new Query();
         boolean isFuzzy = criteria.fuzzy() != null && criteria.fuzzy();
 
-        addCriteriaToQuery(query, FIELD_PACKAGE_NAME, criteria.packageName(), isFuzzy);
+    addCriteriaToQuery(query, FIELD_APP_NAME, criteria.appName(), isFuzzy);
+    addCriteriaToQuery(query, FIELD_PACKAGE_NAME, criteria.packageName(), isFuzzy);
         addCriteriaToQuery(query, FIELD_VERSION_NAME, criteria.versionName(), isFuzzy);
         addCriteriaToQuery(query, FIELD_ORGANIZATION, criteria.organization(), isFuzzy);
         addCriteriaToQuery(query, FIELD_GROUP, criteria.group(), isFuzzy);
         
-        // 使用 limit+1 来判断是否有下一页，但返回给前端的仍然是 limit 数量
-        Pageable pageable = PageRequest.of(criteria.offset() / criteria.limit(), criteria.limit());
-        query.with(pageable);
+        int limit = criteria.limit();
+        if (limit <= 0) {
+            limit = DEFAULT_LIMIT;
+        } else if (limit > MAX_LIMIT) {
+            limit = MAX_LIMIT;
+        }
+        int offset = Math.max(criteria.offset(), 0);
+        query.skip(offset);
+        query.limit(limit);
 
         return mongoTemplate.find(query, Apk.class);
     }
@@ -95,6 +107,41 @@ public class ApkService {
             } else {
                 query.addCriteria(Criteria.where(fieldName).is(value));
             }
+        }
+    }
+
+    @Transactional
+    @CacheEvict(value = {"apks:all","apks:byId","apks:query"}, allEntries = true)
+    public void adminBatchUpdateApks(List<String> ids, String organization, String group) {
+        if (ids == null || ids.isEmpty()) {
+            throw new IllegalArgumentException("批量更新需要至少一个APK ID");
+        }
+
+        String normalizedOrganization = StringUtils.hasText(organization) ? organization.trim() : null;
+        String normalizedGroup = StringUtils.hasText(group) ? group.trim() : null;
+
+        if (normalizedOrganization == null && normalizedGroup == null) {
+            throw new IllegalArgumentException("请至少选择一个更新字段");
+        }
+
+        Set<String> uniqueIds = new LinkedHashSet<>();
+        for (String id : ids) {
+            if (!StringUtils.hasText(id)) {
+                throw new IllegalArgumentException("ID 不能为空");
+            }
+            uniqueIds.add(id.trim());
+        }
+
+        for (String id : uniqueIds) {
+        Apk apk = apkRepository.findById(id)
+            .orElseThrow(() -> new IllegalArgumentException(APK_NOT_FOUND_MESSAGE + id));
+            if (normalizedOrganization != null) {
+                apk.setOrganization(normalizedOrganization);
+            }
+            if (normalizedGroup != null) {
+                apk.setGroup(normalizedGroup);
+            }
+            apkRepository.save(apk);
         }
     }
 
@@ -187,8 +234,8 @@ public class ApkService {
 
     @CacheEvict(value = {"apks:all","apks:byId","apks:query"}, allEntries = true)
     public Apk updateApk(String id, ApkUpdateRequest updateRequest) {
-        Apk existingApk = apkRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Apk not found with id: " + id));
+    Apk existingApk = apkRepository.findById(id)
+        .orElseThrow(() -> new IllegalArgumentException(APK_NOT_FOUND_MESSAGE + id));
 
         existingApk.setOrganization(updateRequest.organization());
         existingApk.setGroup(updateRequest.group());
@@ -198,10 +245,33 @@ public class ApkService {
 
     @CacheEvict(value = {"apks:all","apks:byId","apks:query"}, allEntries = true)
     public void deleteApk(String id) throws IOException {
-        Apk apk = apkRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Apk not found with id: " + id));
+        deleteApkById(id);
+    }
 
-        // Delete files from storage
+    @Transactional
+    @CacheEvict(value = {"apks:all","apks:byId","apks:query"}, allEntries = true)
+    public void deleteApks(List<String> ids) throws IOException {
+        if (ids == null || ids.isEmpty()) {
+            throw new IllegalArgumentException("批量删除需要至少一个APK ID");
+        }
+
+        Set<String> uniqueIds = new LinkedHashSet<>();
+        for (String id : ids) {
+            if (!StringUtils.hasText(id)) {
+                throw new IllegalArgumentException("ID 不能为空");
+            }
+            uniqueIds.add(id.trim());
+        }
+
+        for (String id : uniqueIds) {
+            deleteApkById(id);
+        }
+    }
+
+    private void deleteApkById(String id) throws IOException {
+    Apk apk = apkRepository.findById(id)
+        .orElseThrow(() -> new IllegalArgumentException(APK_NOT_FOUND_MESSAGE + id));
+
         if (StringUtils.hasText(apk.getFilePath())) {
             Path apkPath = apkStorageLocation.getParent().resolve(apk.getFilePath()).normalize();
             Files.deleteIfExists(apkPath);
@@ -211,7 +281,6 @@ public class ApkService {
             Files.deleteIfExists(iconPath);
         }
 
-        // Delete record from database
         apkRepository.deleteById(id);
     }
 }

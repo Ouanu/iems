@@ -4,23 +4,17 @@
     <meta charset="utf-8" />
     <title>权限管理 - IEMS</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="/css/modern.css" />
     <style>
-    body { background:#f5f7fb; min-height:100vh; }
-    .sidebar { width:240px; background:#fff; border-right:1px solid #e9eef6; min-height:100vh; position:fixed; }
-    /* 高亮 sidebar 项目：与 dashboard/operators 保持一致的选中样式 */
-    .nav-link.active {
-      background: linear-gradient(90deg, rgba(99,102,241,0.08), transparent);
-      border-radius: 8px;
-    }
-    .main { margin-left:260px; padding:24px; }
-    .card { border-radius:12px; box-shadow:0 6px 20px rgba(20,30,50,0.04); }
-
-    .compact .form-control { padding:.28rem .45rem; font-size:.88rem; }
-    .compact .form-select { padding:.28rem .45rem; font-size:.88rem; }
-    .compact .btn { padding:.32rem .5rem; font-size:.86rem;}
-    .compact .form-label { font-size:.85rem; margin-bottom:.25rem; }
-    .compact .card { padding:.6rem; }
+    .compact .form-control { padding:.28rem .65rem; font-size:.9rem; }
+    .compact .form-select { padding:.28rem .65rem; font-size:.9rem; }
+    .compact .btn { padding:.36rem .75rem; font-size:.88rem;}
+    .compact .form-label { font-size:.88rem; margin-bottom:.35rem; color:var(--text-muted); }
+    .compact .card { padding:.6rem; border:none; box-shadow:none; background:transparent; }
     .compact .w-33 { width: 33%; }
 
     /* 限制查询表单输入宽度，避免占满整列 */
@@ -111,43 +105,50 @@
       window.location.href = '/login.html';
     }
   </script>
-  <div id="sidebarContainer"></div>
-  <script>
-    (async function loadSidebar(){
-      try {
-        const res = await fetch('/sidebar.html');
-        const html = await res.text();
-        document.getElementById('sidebarContainer').innerHTML = html;
-        const path = location.pathname || '/permissions.html';
-        document.querySelectorAll('#sidebarContainer .nav-link').forEach(a=>{
-          if (a.dataset && a.dataset.href === path) a.classList.add('active');
-          else a.classList.remove('active');
-        });
-        const logout = document.getElementById('logoutBtn');
-        if (logout) logout.addEventListener('click', () => {
-          localStorage.removeItem('accessToken');
-          localStorage.removeItem('refreshToken');
-          window.location.href = '/login.html';
-        });
-      } catch(e) { console.error('load sidebar failed', e); }
-    })();
-  </script>
+  <div class="d-flex layout-shell">
+    <div id="sidebarContainer"></div>
+    <script>
+      (async function loadSidebar(){
+        try {
+          const res = await fetch('/sidebar.html');
+          const html = await res.text();
+          document.getElementById('sidebarContainer').innerHTML = html;
+          const path = location.pathname || '/permissions.html';
+          const container = document.getElementById('sidebarContainer');
+          container.querySelectorAll('.nav-link').forEach(a => a.classList.remove('active'));
+          const activeLink = container.querySelector(`.nav-link[data-href="${path}"]`) || container.querySelector('.nav-link[data-href="/permissions.html"]');
+          if (activeLink) activeLink.classList.add('active');
+          const logout = document.getElementById('logoutBtn');
+          if (logout) logout.addEventListener('click', () => {
+            localStorage.removeItem('accessToken');
+            localStorage.removeItem('refreshToken');
+            window.location.href = '/login.html';
+          });
+        } catch(e) { console.error('load sidebar failed', e); }
+      })();
+    </script>
 
-  <div class="main">
-    <div class="container-fluid">
-      <div class="d-flex justify-content-between align-items-center mb-3">
-        <h4>权限管理</h4>
-        <button class="btn btn-primary" id="createBtn">添加权限</button>
-      </div>
-      <div class="card p-3 mb-3 compact">
+    <main class="flex-grow-1 content-shell">
+      <div class="page-shell">
+        <div class="page-header">
+          <div>
+            <h4>权限管理</h4>
+            <p class="tagline mb-0">配置与审查系统权限，保障访问安全。</p>
+          </div>
+          <div>
+            <button class="btn btn-primary" id="createBtn">添加权限</button>
+          </div>
+        </div>
+
+        <div class="card search-card mb-3 compact shadow-none">
         <form id="queryForm" class="row g-2 align-items-end">
           <div class="col-12 col-sm-3 col-md-2">
-            <label class="form-label">Entity ID</label>
-            <input name="entityId" class="form-control form-control-sm" />
+            <label class="form-label" for="queryEntityId">Entity ID</label>
+            <input id="queryEntityId" name="entityId" class="form-control form-control-sm" />
           </div>
           <div class="col-12 col-sm-3 col-md-2">
-            <label class="form-label">权限类型</label>
-            <input name="permissions" class="form-control form-control-sm" placeholder="如 DEVICE/APP/ROM/SUPER_ADMIN" />
+            <label class="form-label" for="queryPermissions">权限类型</label>
+            <input id="queryPermissions" name="permissions" class="form-control form-control-sm" placeholder="如 DEVICE/APP/ROM/SUPER_ADMIN" />
           </div>
           <div class="col-12" style="margin-top:30px;">
             <div class="d-flex gap-2">
@@ -157,8 +158,8 @@
             </div>
           </div>
         </form>
-      </div>
-      <div class="card p-3 mb-3">
+        </div>
+        <div class="card table-wrapper p-3 mb-3">
         <div class="table-responsive">
           <table class="table table-hover mb-0">
             <thead>
@@ -182,14 +183,14 @@
               <option value="20">20</option>
               <option value="50">50</option>
             </select>
-            <label class="form-label">条</label>
+            <span class="form-label mb-0">条</span>
           </div>
           <nav>
             <ul class="pagination mb-0" id="pager"></ul>
           </nav>
         </div>
       </div>
-    </div>
+    </main>
   </div>
 
   <!-- Create Modal -->
@@ -203,12 +204,12 @@
         <div class="modal-body">
           <form id="createForm" class="row g-2">
             <div class="col-12">
-              <label class="form-label">Entity ID</label>
-              <input name="entityId" class="form-control" required />
+              <label class="form-label" for="createEntityId">Entity ID</label>
+              <input id="createEntityId" name="entityId" class="form-control" required />
             </div>
             <div class="col-12">
-              <label class="form-label">权限类型</label>
-              <select name="permission" class="form-select" required>
+              <label class="form-label" for="createPermission">权限类型</label>
+              <select id="createPermission" name="permission" class="form-select" required>
                 <option value="DEVICE">DEVICE</option>
                 <option value="APP">APP</option>
                 <option value="ROM">ROM</option>
@@ -240,8 +241,8 @@
           <form id="editForm" class="row g-2">
             <input type="hidden" name="entityId" />
             <div class="col-12">
-              <label class="form-label">权限类型</label>
-              <select name="permission" class="form-select" required>
+              <label class="form-label" for="editPermission">权限类型</label>
+              <select id="editPermission" name="permission" class="form-select" required>
                 <option value="DEVICE">DEVICE</option>
                 <option value="APP">APP</option>
                 <option value="ROM">ROM</option>
@@ -354,7 +355,8 @@
     async function loadList() {
       let url = `/api/admin/permissions?offset=${offset}&limit=${limit}`;
       if (lastQuery && Object.keys(lastQuery).length > 0) {
-        url = `/api/admin/permissions/query?` + new URLSearchParams(Object.assign({}, lastQuery, {offset, limit}));
+        const params = new URLSearchParams({ ...(lastQuery || {}), offset, limit });
+        url = `/api/admin/permissions/query?${params.toString()}`;
       }
       const resp = await apiFetch(url);
       const data = await resp.json();
@@ -572,6 +574,7 @@
         createMsg.textContent = '创建成功';
         setTimeout(() => { hideModal(); offset = 0; loadList(); }, 900);
       } catch (err) {
+        console.error('create permission failed', err);
         createMsg.className = 'text-center small mt-2 text-danger';
         createMsg.textContent = '网络错误';
       }
@@ -616,6 +619,7 @@
         setTimeout(() => { hideEditModal(); loadList(); }, 700);
       } catch (err) {
         const msgEl = document.getElementById('editMsg');
+        console.error('update permission failed', err);
         msgEl.className = 'text-center small mt-2 text-danger';
         msgEl.textContent = '网络错误';
       }

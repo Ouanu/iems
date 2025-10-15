@@ -2,10 +2,16 @@ package dev.ouanu.iems.service;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
 
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
@@ -39,19 +45,21 @@ public class DeviceService {
     private final AccessTokenBlacklistRepository blacklistRepository;
     private final SnowflakeIdService snowflakeIdService;
     private final PermissionService permissionService;
+    private final CacheManager cacheManager;
     private static final int DEFAULT_LIMIT = 20;
     private static final int MAX_LIMIT = 100;
 
     public DeviceService(DeviceMapper deviceMapper,
                          JwtUtil jwtUtil,
                          DeviceTokenRepository deviceTokenRepository,
-                         AccessTokenBlacklistRepository blacklistRepository, SnowflakeIdService snowflakeIdService, PermissionService permissionService) {
+                         AccessTokenBlacklistRepository blacklistRepository, SnowflakeIdService snowflakeIdService, PermissionService permissionService, CacheManager cacheManager) {
         this.deviceMapper = deviceMapper;
         this.jwtUtil = jwtUtil;
         this.deviceTokenRepository = deviceTokenRepository;
         this.blacklistRepository = blacklistRepository;
         this.snowflakeIdService = snowflakeIdService;
         this.permissionService = permissionService;
+        this.cacheManager = cacheManager;
     }
 
     @Transactional
@@ -71,7 +79,7 @@ public class DeviceService {
         if (ret != 1) {
             throw new IllegalStateException("Failed to create device");
         }
-        var retP = permissionService.createPermission(device.getId(), Permission.DEVICE_READ_ITSELF, Permission.DEVICE_UPDATE_ITSELF, Permission.DEVICE_WRITE_ITSELF);
+        var retP = permissionService.createPermission(device.getId(), Permission.DEVICE_READ_ITSELF, Permission.DEVICE_UPDATE_ITSELF, Permission.DEVICE_WRITE_ITSELF, Permission.APP_READ);
         if (retP) {
             throw new IllegalStateException("Failed to create device permissions");
         }
@@ -98,6 +106,57 @@ public class DeviceService {
             throw new IllegalStateException("Failed to update device");
         }
         return device;
+    }
+
+    @Transactional
+    public void adminBatchUpdateDevices(List<Long> ids, Boolean active, Boolean locked) {
+        if (active == null && locked == null) {
+            throw new IllegalArgumentException("请至少选择一个更新字段");
+        }
+
+        Set<Long> uniqueIds = normalizeIds(ids);
+        List<Device> devices = loadDevices(uniqueIds);
+
+        for (Device device : devices) {
+            if (active != null) {
+                device.setActive(active);
+            }
+            if (locked != null) {
+                device.setLocked(locked);
+            }
+            int ret = deviceMapper.update(device);
+            if (ret != 1) {
+                throw new IllegalStateException("批量更新失败, 设备ID: " + device.getId());
+            }
+        }
+
+        evictBatchCaches(uniqueIds, devices);
+    }
+
+    private Set<Long> normalizeIds(List<Long> ids) {
+        if (ids == null || ids.isEmpty()) {
+            throw new IllegalArgumentException("批量更新需要至少一个设备ID");
+        }
+        Set<Long> uniqueIds = new LinkedHashSet<>();
+        for (Long id : ids) {
+            if (id == null) {
+                throw new IllegalArgumentException("ID 不能为空");
+            }
+            uniqueIds.add(id);
+        }
+        return uniqueIds;
+    }
+
+    private List<Device> loadDevices(Set<Long> ids) {
+        List<Device> devices = new ArrayList<>(ids.size());
+        for (Long id : ids) {
+            Device device = deviceMapper.selectById(id);
+            if (device == null) {
+                throw new IllegalArgumentException("设备不存在: " + id);
+            }
+            devices.add(device);
+        }
+        return devices;
     }
 
     @Transactional
@@ -183,6 +242,28 @@ public class DeviceService {
         }
         List<Device> devices = deviceMapper.query(params);
         return devices.stream().map(DeviceVO::fromEntity).toList();
+    }
+
+    private void evictBatchCaches(Set<Long> ids, List<Device> devices) {
+        if (cacheManager == null) {
+            return;
+        }
+        Cache listCache = cacheManager.getCache("devices:list");
+        if (listCache != null) {
+            listCache.clear();
+        }
+        Cache byIdCache = cacheManager.getCache("devices:byId");
+        if (byIdCache != null) {
+            ids.forEach(byIdCache::evict);
+        }
+        Cache byUuidCache = cacheManager.getCache("devices:byUuid");
+        if (byUuidCache != null) {
+            for (Device device : devices) {
+                if (Objects.nonNull(device.getUuid())) {
+                    byUuidCache.evict(device.getUuid());
+                }
+            }
+        }
     }
 
     @Transactional

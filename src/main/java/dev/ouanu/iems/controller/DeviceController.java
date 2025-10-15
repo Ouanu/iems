@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import dev.ouanu.iems.dto.BatchUpdateDevicesRequest;
 import dev.ouanu.iems.dto.DeviceLogoutDTO;
 import dev.ouanu.iems.dto.RegisterDeviceDTO;
 import dev.ouanu.iems.dto.UpdateDeviceDTO;
@@ -74,6 +75,19 @@ public class DeviceController {
             return ResponseEntity.ok(DeviceVO.fromEntity(device));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+        }
+    }
+
+    @PreAuthorize("hasAuthority('operator:write')")
+    @PutMapping(path = "/admin/devices/batch", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.TEXT_PLAIN_VALUE)
+    public ResponseEntity<String> batchUpdateDevices(@Valid @RequestBody BatchUpdateDevicesRequest request) {
+        try {
+            deviceService.adminBatchUpdateDevices(request.getIds(), request.getActive(), request.getLocked());
+            return ResponseEntity.ok("批量更新成功");
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
         }

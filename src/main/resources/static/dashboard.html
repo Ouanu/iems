@@ -5,13 +5,53 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Dashboard - IEMS</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="/css/modern.css" />
   <style>
-    body { background:#f5f7fb; min-height:100vh; }
-    .sidebar { width:240px; background:#ffffff; border-right:1px solid #e9eef6; min-height:100vh; }
-    .brand { padding:20px; font-weight:600; }
-    .nav-link.active { background: linear-gradient(90deg, rgba(99,102,241,0.08), transparent); border-radius:8px; }
-    .content { padding:24px; }
-    .card { border-radius:12px; box-shadow:0 6px 20px rgba(20,30,50,0.04); }
+    .metric-card {
+      border-radius: var(--radius-md);
+      padding: 26px;
+      background: var(--surface);
+      box-shadow: var(--shadow-soft);
+      height: 100%;
+    }
+
+    .metric-card small {
+      display: block;
+      font-size: 0.75rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+
+    .quick-actions .btn {
+      min-width: 140px;
+      border-radius: 14px;
+      padding: 0.65rem 1.1rem;
+      background: rgba(79, 70, 229, 0.08);
+      color: var(--primary);
+      border-color: transparent;
+    }
+
+    .quick-actions .btn:hover {
+      background: var(--primary);
+      color: var(--text-on-primary);
+    }
+
+    .welcome-card {
+      background: linear-gradient(135deg, rgba(79, 70, 229, 0.12), rgba(59, 130, 246, 0.08));
+      border-radius: var(--radius-md);
+      border: 1px solid rgba(79, 70, 229, 0.18);
+    }
+
+    .welcome-card h5 {
+      color: var(--primary);
+      font-weight: 600;
+    }
   </style>
 </head>
 <body>
@@ -21,8 +61,7 @@
       window.location.href = '/login.html';
     }
   </script>
-
-  <div class="d-flex">
+  <div class="d-flex layout-shell">
     <div id="sidebarContainer"></div>
     <script>
       // 动态加载 sidebar.html 并做高亮与 logout 绑定
@@ -50,46 +89,94 @@
       })();
     </script>
 
-    <div class="flex-grow-1 content">
-      <div class="container-fluid">
-        <div class="row mb-4">
-          <div class="col">
-            <h4>仪表盘</h4>
-            <p class="text-muted">欢迎使用 IEMS 管理平台。</p>
+    <main class="flex-grow-1 content-shell">
+      <div class="page-shell">
+        <div class="page-header">
+          <div>
+            <h4>仪表盘总览</h4>
+            <p class="tagline">欢迎使用 IEMS 管理平台，查看关键运行指标与入口。</p>
           </div>
         </div>
 
-        <div class="row">
-          <div class="col-12 col-lg-6 mb-3">
-            <div class="card p-3">
-              <h6>系统概览</h6>
-              <div class="row">
-                <div class="col">
-                  <div class="text-muted small">活跃用户</div>
-                  <div class="h4">—</div>
+        <div class="row g-4 align-items-stretch mb-3">
+          <div class="col-12 col-lg-4">
+            <div class="metric-card welcome-card h-100">
+              <h5 class="mb-2">系统概览</h5>
+              <p class="mb-4 text-muted">实时掌握平台核心资源规模。</p>
+              <div class="row g-3">
+                <div class="col-12 col-md-4">
+                  <small>账号数量</small>
+                  <div class="display-6" id="statOperators">—</div>
                 </div>
-                <div class="col">
-                  <div class="text-muted small">在线设备</div>
-                  <div class="h4">—</div>
+                <div class="col-12 col-md-4">
+                  <small>设备数量</small>
+                  <div class="display-6" id="statDevices">—</div>
+                </div>
+                <div class="col-12 col-md-4">
+                  <small>应用数量</small>
+                  <div class="display-6" id="statApks">—</div>
                 </div>
               </div>
             </div>
           </div>
-          <div class="col-12 col-lg-6 mb-3">
-            <div class="card p-3">
-              <h6>快速操作</h6>
-              <div class="d-flex gap-2 mt-2">
-                <a class="btn btn-outline-primary" href="/operators.html">管理账号</a>
-                <a class="btn btn-outline-secondary" href="/devices.html">管理设备</a>
-                <a class="btn btn-outline-success" href="/permissions.html">管理权限</a>
-                <a class="btn btn-outline-danger" href="/apks.html">管理APK</a>
+          <div class="col-12 col-lg-8">
+            <div class="metric-card h-100">
+              <small>快捷入口</small>
+              <div class="d-flex flex-wrap gap-3 mt-3 quick-actions">
+                <a class="btn" href="/operators.html">管理账号</a>
+                <a class="btn" href="/devices.html">管理设备</a>
+                <a class="btn" href="/permissions.html">管理权限</a>
+                <a class="btn" href="/apks.html">管理 APK</a>
               </div>
             </div>
           </div>
         </div>
 
       </div>
-    </div>
+    </main>
   </div>
+  <script>
+  async function loadDashboardStats() {
+    const accessToken = localStorage.getItem('accessToken');
+    if (!accessToken) {
+      return;
+    }
+    try {
+      const response = await fetch('/api/stats/overview', {
+        headers: {
+          'Authorization': 'Bearer ' + accessToken,
+          'Accept': 'application/json'
+        }
+      });
+      if (!response.ok) {
+        throw new Error('Failed to load stats');
+      }
+      const data = await response.json();
+      const operatorEl = document.getElementById('statOperators');
+      const deviceEl = document.getElementById('statDevices');
+      const apkEl = document.getElementById('statApks');
+      if (operatorEl) {
+        operatorEl.textContent = formatCount(data.operatorCount);
+      }
+      if (deviceEl) {
+        deviceEl.textContent = formatCount(data.deviceCount);
+      }
+      if (apkEl) {
+        apkEl.textContent = formatCount(data.apkCount);
+      }
+    } catch (error) {
+      console.error('loadDashboardStats error', error);
+    }
+  }
+
+  function formatCount(value) {
+    if (typeof value !== 'number') {
+      return '—';
+    }
+    return value.toLocaleString('zh-CN');
+  }
+
+  loadDashboardStats();
+  </script>
 </body>
 </html>

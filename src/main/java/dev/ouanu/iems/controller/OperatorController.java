@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import dev.ouanu.iems.dto.AdminResetPasswordDTO;
+import dev.ouanu.iems.dto.BatchUpdateOperatorsRequest;
 import dev.ouanu.iems.dto.ChangePasswordDTO;
 import dev.ouanu.iems.dto.OperatorLogoutDTO;
 import dev.ouanu.iems.dto.RegisterOperatorDTO;
@@ -70,6 +71,19 @@ public class OperatorController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+    }
+
+    @PreAuthorize("hasAuthority('operator:write')")
+    @PutMapping(path = "/admin/operators/batch", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.TEXT_PLAIN_VALUE)
+    public ResponseEntity<String> batchUpdateOperators(@Valid @RequestBody BatchUpdateOperatorsRequest request) {
+        try {
+            operatorService.adminBatchUpdateOperators(request.getIds(), request.getUpdates());
+            return ResponseEntity.ok("批量更新成功");
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
         }
     }
 

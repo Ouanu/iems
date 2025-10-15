@@ -2,13 +2,20 @@ package dev.ouanu.iems.service;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
 
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -47,6 +54,7 @@ public class OperatorService {
     private static final int MAX_LIMIT = 100;
     private final SnowflakeIdService snowflakeIdService;
     private final RedisTokenService redisTokenService;
+    private final CacheManager cacheManager;
 
     public OperatorService(OperatorMapper operatorMapper,
                            PasswordEncoder passwordEncoder,
@@ -54,7 +62,8 @@ public class OperatorService {
                            OperatorTokenRepository operatorTokenRepository,
                            AccessTokenBlacklistRepository blacklistRepository,
                            SnowflakeIdService snowflakeIdService,
-                           RedisTokenService redisTokenService) {
+                           RedisTokenService redisTokenService,
+                           CacheManager cacheManager) {
         this.snowflakeIdService = snowflakeIdService;
         this.operatorMapper = operatorMapper;
         this.passwordEncoder = passwordEncoder;
@@ -62,6 +71,7 @@ public class OperatorService {
         this.operatorTokenRepository = operatorTokenRepository;
         this.blacklistRepository = blacklistRepository;
         this.redisTokenService = redisTokenService;
+        this.cacheManager = cacheManager;
     }
 
     /**
@@ -262,6 +272,7 @@ public class OperatorService {
      * @return
      */
     @Transactional
+    @CacheEvict(value = {"operators:list","operators:byId"}, allEntries = true)
     public ResponseEntity<String> changePassword(ChangePasswordDTO dto) {
         var auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null) {
@@ -313,7 +324,10 @@ public class OperatorService {
      * @return 
      */
     @Transactional
-    @CacheEvict(value = {"operators:list", "operators:byId"}, key = "#id")
+    @Caching(evict = {
+        @CacheEvict(value = "operators:list", allEntries = true),
+        @CacheEvict(value = "operators:byId", key = "#id")
+    })
     public Operator adminUpdateProfile(Long id, UpdateOperatorDTO dto) {
         // verify auth's permission
         Operator operator = operatorMapper.selectById(id);
@@ -328,13 +342,52 @@ public class OperatorService {
         return operator;
     }
 
+    @Transactional
+    public void adminBatchUpdateOperators(List<Long> ids, UpdateOperatorDTO updates) {
+        if (ids == null || ids.isEmpty()) {
+            throw new IllegalArgumentException("批量更新需要至少一个操作员ID");
+        }
+        if (!hasAnyUpdatableField(updates)) {
+            throw new IllegalArgumentException("批量更新内容不能为空");
+        }
+        Set<Long> uniqueIds = new LinkedHashSet<>();
+        for (Long id : ids) {
+            if (id == null) {
+                throw new IllegalArgumentException("ID 不能为空");
+            }
+            uniqueIds.add(id);
+        }
+
+        List<Operator> operators = new ArrayList<>(uniqueIds.size());
+        for (Long id : uniqueIds) {
+            Operator operator = operatorMapper.selectById(id);
+            if (operator == null) {
+                throw new IllegalArgumentException("操作员不存在: " + id);
+            }
+            operators.add(operator);
+        }
+
+        for (Operator operator : operators) {
+            updateOperatorFields(updates, operator);
+            int ret = operatorMapper.update(operator);
+            if (ret != 1) {
+                throw new IllegalStateException("批量更新失败, 操作员ID: " + operator.getId());
+            }
+        }
+
+        evictBatchCaches(uniqueIds);
+    }
+
     /**
      * Operator update own profile
      * @param dto the operator DTO
      * @return
      */
     @Transactional
-    @CacheEvict(value = {"operators:list", "operators:byId"}, key = "#result.id")
+    @Caching(evict = {
+        @CacheEvict(value = "operators:list", allEntries = true),
+        @CacheEvict(value = "operators:byId", key = "#result.id")
+    })
     public OperatorVO updateProfile(UpdateOperatorDTO dto) {
         var auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null) {
@@ -365,6 +418,35 @@ public class OperatorService {
         operator.setLevel(dto.getLevel() != null ? dto.getLevel() : operator.getLevel());
         if (dto.getActive() != null) {
             operator.setActive(dto.getActive());
+        }
+    }
+
+    private boolean hasAnyUpdatableField(UpdateOperatorDTO dto) {
+        if (dto == null) {
+            return false;
+        }
+        return Objects.nonNull(dto.getDisplayName())
+            || Objects.nonNull(dto.getPhone())
+            || Objects.nonNull(dto.getEmail())
+            || Objects.nonNull(dto.getAccountType())
+            || Objects.nonNull(dto.getDepartment())
+            || Objects.nonNull(dto.getTeam())
+            || Objects.nonNull(dto.getPosition())
+            || Objects.nonNull(dto.getLevel())
+            || Objects.nonNull(dto.getActive());
+    }
+
+    private void evictBatchCaches(Set<Long> ids) {
+        if (cacheManager == null) {
+            return;
+        }
+        Cache listCache = cacheManager.getCache("operators:list");
+        if (listCache != null) {
+            listCache.clear();
+        }
+        Cache byIdCache = cacheManager.getCache("operators:byId");
+        if (byIdCache != null) {
+            ids.forEach(byIdCache::evict);
         }
     }
 
@@ -429,7 +511,10 @@ public class OperatorService {
      * @return
      */
     @Transactional
-    @CacheEvict(value = {"operators:list", "operators:byId"}, key = "#id")
+    @Caching(evict = {
+        @CacheEvict(value = "operators:list", allEntries = true),
+        @CacheEvict(value = "operators:byId", key = "#id")
+    })
     public void delete(Long id) {
         // verify auth's permission
         Operator operator = operatorMapper.selectById(id);
