@@ -5,7 +5,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -183,17 +182,23 @@ public class ApkService {
 
                 // 2.1 Check if packageName already exists in DB -> if yes, remove uploaded
                 // files and throw
-                boolean exists = mongoTemplate.exists(Query.query(Criteria.where(FIELD_PACKAGE_NAME).is(packageName)),
-                        Apk.class);
-                if (exists) {
-                    throw new IllegalStateException("Apk已存在: " + packageName);
+                List<Apk> existingApks = mongoTemplate.find(Query.query(Criteria.where(FIELD_PACKAGE_NAME).is(packageName)), Apk.class);
+                
+                if (!existingApks.isEmpty()) {
+                    if (versionCode == existingApks.get(0).getVersionCode()) {
+                        throw new IllegalStateException("Apk已存在: " + packageName);
+                    }else{
+                        // Allow different versionCode for the same packageName
+                    }
                 }
                 // --- Icon Extraction ---
                 // IconFace iconFace = apkFile.getAllIcons().stream()
                 //         .filter(IconFace::isFile)
                 //         .max(Comparator.comparingInt(icon -> icon.getData().length))
                 //         .orElse(null);
-                IconFace iconFace = apkFile.getAllIcons().get(0);
+                int size = apkFile.getAllIcons().size();
+                apkFile.getAllIcons().sort((a, b) -> Integer.compare(b.getData().length, a.getData().length));
+                IconFace iconFace = apkFile.getAllIcons().get(size / 2);
 
                 if (iconFace != null) {
                     String iconPath = iconFace.getPath();

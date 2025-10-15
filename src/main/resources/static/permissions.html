@@ -229,39 +229,6 @@
     </div>
   </div>
 
-  <!-- Edit Modal -->
-  <div class="modal" tabindex="-1" id="editModal">
-    <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title">编辑权限</h5>
-          <button type="button" class="btn-close" id="editClose"></button>
-        </div>
-        <div class="modal-body">
-          <form id="editForm" class="row g-2">
-            <input type="hidden" name="entityId" />
-            <div class="col-12">
-              <label class="form-label" for="editPermission">权限类型</label>
-              <select id="editPermission" name="permission" class="form-select" required>
-                <option value="DEVICE">DEVICE</option>
-                <option value="APP">APP</option>
-                <option value="ROM">ROM</option>
-                <option value="SUPER_ADMIN">SUPER_ADMIN</option>
-              </select>
-            </div>
-            <div class="col-12">
-              <div id="editMsg" class="text-center small mt-2"></div>
-            </div>
-          </form>
-        </div>
-        <div class="modal-footer">
-          <button id="submitEdit" class="btn btn-primary">保存</button>
-          <button id="cancelEdit" class="btn btn-outline-secondary">取消</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
   <!-- Detail Modal -->
   <div class="modal" tabindex="-1" id="detailModal">
     <div class="modal-dialog modal-dialog-centered modal-sm">
@@ -406,7 +373,6 @@
           <td class="col-actions">
             <div class="btn-group" role="group" aria-label="actions">
               <button class="btn btn-sm btn-outline-info btn-detail" data-id="${entityId}" title="详情"><i class="bi bi-eye"></i></button>
-              <button class="btn btn-sm btn-outline-primary btn-edit" data-id="${entityId}" data-perm="${row.permissions ?? ''}" title="编辑"><i class="bi bi-pencil"></i></button>
               <button class="btn btn-sm btn-outline-danger btn-delete" data-id="${entityId}" title="删除"><i class="bi bi-trash"></i></button>
             </div>
           </td>
@@ -442,11 +408,6 @@
         });
       });
 
-      tbody.querySelectorAll('.btn-edit').forEach(btn => {
-         btn.addEventListener('click', (e) => {
-           openEditModal(btn.dataset.id, btn.dataset.perm);
-         });
-       });
        tbody.querySelectorAll('.btn-delete').forEach(btn => {
          btn.addEventListener('click', async (e) => {
            if (!confirm('确认删除 Entity ID=' + btn.dataset.id + ' 的权限?')) return;
@@ -577,51 +538,6 @@
         console.error('create permission failed', err);
         createMsg.className = 'text-center small mt-2 text-danger';
         createMsg.textContent = '网络错误';
-      }
-    });
-
-    const editModal = document.getElementById('editModal');
-    const editClose = document.getElementById('editClose');
-    const cancelEdit = document.getElementById('cancelEdit');
-    const submitEdit = document.getElementById('submitEdit');
-    function showEditModal() { editModal.style.display = 'block'; editModal.classList.add('show'); }
-    function hideEditModal() { editModal.style.display = 'none'; editModal.classList.remove('show'); document.getElementById('editForm').reset(); document.getElementById('editMsg').textContent = ''; }
-    editClose.addEventListener('click', hideEditModal);
-    cancelEdit.addEventListener('click', hideEditModal);
-
-    function openEditModal(entityId, permissions) {
-      const form = document.getElementById('editForm');
-      form.elements['entityId'].value = entityId;
-      form.elements['permission'].value = (permissions || '').split(',')[0] || 'DEVICE';
-      showEditModal();
-    }
-
-    submitEdit.addEventListener('click', async () => {
-      const form = document.getElementById('editForm');
-      if (!form.reportValidity()) return;
-      const fd = new FormData(form);
-      const entityId = fd.get('entityId');
-      const permission = fd.get('permission');
-      try {
-        const resp = await apiFetch(`/api/admin/permissions/${encodeURIComponent(entityId)}`, {
-          method: 'PUT',
-          body: JSON.stringify(permission)
-        });
-        const text = await resp.text();
-        const msgEl = document.getElementById('editMsg');
-        if (!resp.ok) {
-          msgEl.className = 'text-center small mt-2 text-danger';
-          msgEl.textContent = text || '更新失败';
-          return;
-        }
-        msgEl.className = 'text-center small mt-2 text-success';
-        msgEl.textContent = '更新成功';
-        setTimeout(() => { hideEditModal(); loadList(); }, 700);
-      } catch (err) {
-        const msgEl = document.getElementById('editMsg');
-        console.error('update permission failed', err);
-        msgEl.className = 'text-center small mt-2 text-danger';
-        msgEl.textContent = '网络错误';
       }
     });
 

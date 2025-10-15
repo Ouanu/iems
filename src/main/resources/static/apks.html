@@ -242,7 +242,7 @@
 
     <!-- Upload/Edit Modal -->
     <div class="modal fade" id="apkModal" tabindex="-1" aria-labelledby="apkModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
+        <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header"><h5 class="modal-title" id="apkModalLabel">应用操作</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
                 <div class="modal-body">
@@ -277,7 +277,7 @@
 
     <!-- Bulk Edit Modal -->
     <div class="modal fade" id="bulkEditModal" tabindex="-1" aria-labelledby="bulkEditModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
+        <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="bulkEditModalLabel">批量修改</h5>
@@ -385,38 +385,43 @@
         }
 
         async function apiFetch(url, options = {}) {
-            const buildHeaders = () => {
-                const headers = { 'Authorization': `Bearer ${getAccessToken()}` };
-                if (!(options.body instanceof FormData)) {
+            const buildHeaders = (token) => {
+                const headers = { ...(options.headers || {}) };
+                if (token) {
+                    headers['Authorization'] = `Bearer ${token}`;
+                }
+                // Don't set Content-Type for FormData, let the browser do it
+                if (!(options.body instanceof FormData) && !headers['Content-Type']) {
                     headers['Content-Type'] = 'application/json';
                 }
-                return { ...headers, ...options.headers };
+                return headers;
             };
 
-            let response = await fetch(url, { ...options, headers: buildHeaders() });
+            let response = await fetch(url, { ...options, headers: buildHeaders(getAccessToken()) });
 
             if (response.status === 401) {
                 try {
-                    await refreshAccessToken();
-                    response = await fetch(url, { ...options, headers: buildHeaders() });
-                } catch (refreshErr) {
-                    console.error('Token refresh failed:', refreshErr);
-                    alert('会话已过期，请重新登录。');
+                    const newToken = await refreshAccessToken();
+                    // Retry with the new token, ensuring headers are rebuilt
+                    const retryOptions = { ...options, headers: buildHeaders(newToken) };
+                    response = await fetch(url, retryOptions);
+                } catch (err) {
+                    console.error('Token refresh failed, logging out.', err);
+                    localStorage.removeItem('accessToken');
+                    localStorage.removeItem('refreshToken');
                     window.location.href = '/login.html';
-                    throw refreshErr;
+                    throw err; // rethrow to stop further execution
                 }
             }
 
             if (!response.ok) {
-                const error = await response.text();
-                throw new Error(error || `HTTP error! status: ${response.status}`);
+                const errorText = await response.text();
+                throw new Error(`API request failed with status ${response.status}: ${errorText}`);
             }
 
             const contentType = response.headers.get("content-type");
             return contentType?.includes("application/json") ? response.json() : response.text();
-        }
-
-        // --- Search and Reset ---
+        }        // --- Search and Reset ---
         function handleSearch() {
             const getVal = id => document.getElementById(id).value.trim();
             currentSearchQuery = {
