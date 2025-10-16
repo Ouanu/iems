@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import dev.ouanu.iems.annotation.ActionLog;
 import dev.ouanu.iems.dto.ApkSearchCriteria;
 import dev.ouanu.iems.dto.ApkUpdateRequest;
 import dev.ouanu.iems.dto.BatchUpdateApksRequest;
@@ -40,6 +41,7 @@ public class ApkController {
         this.apkService = apkService;
     }
 
+    @ActionLog("上传APK")
     @PreAuthorize("hasAuthority('app:manage')")
     @PostMapping("/upload")
     public ResponseEntity<Apk> uploadApk(
@@ -88,6 +90,7 @@ public class ApkController {
         return ResponseEntity.ok(apkService.queryApks(criteria));
     }
 
+    @ActionLog("批量更新APK")
     @PreAuthorize("hasAuthority('app:manage')")
     @PutMapping(path = "/batch", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.TEXT_PLAIN_VALUE)
     public ResponseEntity<String> batchUpdateApks(@Valid @RequestBody BatchUpdateApksRequest request) {
@@ -103,6 +106,7 @@ public class ApkController {
         }
     }
 
+    @ActionLog("更新APK")
     @PreAuthorize("hasAuthority('app:manage')")
     @PutMapping("/{id}")
     public ResponseEntity<Apk> updateApk(@PathVariable String id, @RequestBody ApkUpdateRequest updateRequest) {
@@ -113,6 +117,7 @@ public class ApkController {
         }
     }
 
+    @ActionLog("删除APK")
     @PreAuthorize("hasAuthority('app:manage')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteApk(@PathVariable String id) {
@@ -124,6 +129,7 @@ public class ApkController {
         }
     }
 
+    @ActionLog("批量删除APK")
     @PreAuthorize("hasAuthority('app:manage')")
     @DeleteMapping
     public ResponseEntity<String> deleteApks(@RequestParam("ids") String idsParam) {

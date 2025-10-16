@@ -1,16 +1,16 @@
 spring:
   datasource:
     # 可通过环境变量覆盖 MYSQL_HOST/MYSQL_PORT 等；在 docker-compose 下通常连接到服务名 mysql
-    url: jdbc:mysql://${MYSQL_HOST:localhost}:${MYSQL_PORT:3306}/${MYSQL_DATABASE:iems_dev}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+    url: jdbc:mysql://${MYSQL_HOST:localhost}:${MYSQL_PORT:3376}/${MYSQL_DATABASE:iems_dev}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
     username: ${MYSQL_USER:iems}
     password: ${MYSQL_PASSWORD:iems_dev_pwd}
     driver-class-name: com.mysql.cj.jdbc.Driver
   data:
     mongodb:
-      uri: mongodb://${MONGO_INITDB_ROOT_USERNAME:mongo_dev}:${MONGO_INITDB_ROOT_PASSWORD:mongo_dev_pwd}@${MONGO_HOST:localhost}:${MONGO_PORT:27017}/${MONGO_DATABASE:admin}?authSource=admin
+      uri: mongodb://${MONGO_INITDB_ROOT_USERNAME:mongo_dev}:${MONGO_INITDB_ROOT_PASSWORD:mongo_dev_pwd}@${MONGO_HOST:localhost}:${MONGO_PORT:27817}/${MONGO_DATABASE:admin}?authSource=admin
     redis:
       host: ${REDIS_HOST:localhost}
-      port: ${REDIS_PORT:6379}
+      port: ${REDIS_PORT:6879}
       password: ${REDIS_PASSWORD:redis_dev_pwd} # Add Redis password
       timeout: 2s # Use standard duration format
       lettuce:

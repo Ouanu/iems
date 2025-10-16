@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import dev.ouanu.iems.annotation.ActionLog;
 import dev.ouanu.iems.constant.Permission;
 import dev.ouanu.iems.service.PermissionService;
 import dev.ouanu.iems.vo.PermissionVO;
@@ -33,6 +34,7 @@ public class PermissionController {
     }
 
     // Controller methods would go here
+    @ActionLog("创建权限")
     @PreAuthorize("hasAuthority('operator:manage')")
     @PostMapping("/admin/permissions")
     public ResponseEntity<String> createPermission(@RequestParam Long operatorId, @RequestBody String permissionStr) {
@@ -49,6 +51,7 @@ public class PermissionController {
         }
     }
 
+    @ActionLog("更新权限")
     @PreAuthorize("hasAuthority('operator:manage')")
     @PutMapping("/admin/permissions/{id}")
     public ResponseEntity<String> updatePermission(@PathVariable Long id, @RequestBody String permissionStr) {
@@ -69,6 +72,7 @@ public class PermissionController {
         }
     }
 
+    @ActionLog("删除权限")
     @PreAuthorize("hasAuthority('operator:manage')")
     @DeleteMapping("/admin/permissions/{id}")
     public ResponseEntity<String> deletePermission(@PathVariable Long id) {

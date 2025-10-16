@@ -277,6 +277,7 @@ public class DeviceService {
         if (ret != 1) {
             throw new IllegalStateException("Failed to delete device");
         }
+        permissionService.deletePermission(id);
     }
 
     // --- Authentication / token management for devices ---

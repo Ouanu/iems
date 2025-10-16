@@ -55,6 +55,7 @@ public class OperatorService {
     private final SnowflakeIdService snowflakeIdService;
     private final RedisTokenService redisTokenService;
     private final CacheManager cacheManager;
+    private final PermissionService permissionService;
 
     public OperatorService(OperatorMapper operatorMapper,
                            PasswordEncoder passwordEncoder,
@@ -63,7 +64,8 @@ public class OperatorService {
                            AccessTokenBlacklistRepository blacklistRepository,
                            SnowflakeIdService snowflakeIdService,
                            RedisTokenService redisTokenService,
-                           CacheManager cacheManager) {
+                           CacheManager cacheManager,
+                           PermissionService permissionService) {
         this.snowflakeIdService = snowflakeIdService;
         this.operatorMapper = operatorMapper;
         this.passwordEncoder = passwordEncoder;
@@ -72,6 +74,7 @@ public class OperatorService {
         this.blacklistRepository = blacklistRepository;
         this.redisTokenService = redisTokenService;
         this.cacheManager = cacheManager;
+        this.permissionService = permissionService;
     }
 
     /**
@@ -525,6 +528,7 @@ public class OperatorService {
         if (ret != 1) {
             throw new IllegalStateException("Failed to delete operator");
         }
+        permissionService.deletePermission(id);
     }
 
     /**

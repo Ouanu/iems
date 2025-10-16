@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import dev.ouanu.iems.annotation.ActionLog;
 import dev.ouanu.iems.dto.BatchUpdateDevicesRequest;
 import dev.ouanu.iems.dto.DeviceLogoutDTO;
 import dev.ouanu.iems.dto.RegisterDeviceDTO;
@@ -40,6 +41,7 @@ public class DeviceController {
     }
 
     // Create device (admin)
+    @ActionLog("创建设备")
     @PreAuthorize("hasAuthority('operator:write')")
     @PostMapping(path = "/admin/devices", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> createDevice(@Valid @RequestBody RegisterDeviceDTO dto) {
@@ -66,6 +68,7 @@ public class DeviceController {
     }
 
     // Admin update device by id
+    @ActionLog("更新设备")
     @PreAuthorize("hasAuthority('operator:write')")
     @PutMapping(path = "/admin/devices/{id}", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> adminUpdateDevice(@PathVariable("id") Long id,
@@ -81,6 +84,7 @@ public class DeviceController {
     }
 
     @PreAuthorize("hasAuthority('operator:write')")
+    @ActionLog("批量更新设备")
     @PutMapping(path = "/admin/devices/batch", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.TEXT_PLAIN_VALUE)
     public ResponseEntity<String> batchUpdateDevices(@Valid @RequestBody BatchUpdateDevicesRequest request) {
         try {
@@ -121,6 +125,7 @@ public class DeviceController {
     }
 
     // Delete device (admin)
+    @ActionLog("删除设备")
     @PreAuthorize("hasAuthority('operator:delete')")
     @DeleteMapping(path = "/admin/devices/{id}", produces = MediaType.TEXT_PLAIN_VALUE)
     public ResponseEntity<String> deleteDevice(@PathVariable("id") Long id) {
@@ -167,6 +172,7 @@ public class DeviceController {
         }
     }
 
+    @ActionLog("设备注册")
     @PostMapping(path="/devices/auth", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> register(@Valid @RequestBody RegisterRequest request) {
         RegisterDeviceDTO dto = new RegisterDeviceDTO(request.macAddress, request.signatureHash, true, false, request.model,
@@ -181,6 +187,7 @@ public class DeviceController {
         }
     }
 
+    @ActionLog("设备登录")
     @PostMapping(path = "/devices/auth/login", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<TokenVO> login(@Valid @RequestBody LoginRequest req) {
         return deviceService.login(req.macAddress, req.signatureHash);
@@ -194,6 +201,7 @@ public class DeviceController {
         }
     }
 
+    @ActionLog("刷新设备令牌")
     @PreAuthorize("hasAuthority('device:write:self')")
     @PostMapping(path = "/devices/auth/refresh", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<TokenVO> refresh(@Valid @RequestBody RefreshRequest req) {
@@ -201,6 +209,7 @@ public class DeviceController {
         return deviceService.refreshToken(req.refreshToken);
     }
 
+    @ActionLog("设备登出")
     @PreAuthorize("hasAuthority('device:write:self')")
     @PostMapping(path = "/devices/auth/logout", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.TEXT_PLAIN_VALUE)
     public ResponseEntity<String> logout(@Valid @RequestBody DeviceLogoutDTO dto) {
@@ -226,6 +235,7 @@ public class DeviceController {
         }
     }
 
+    @ActionLog("更新设备信息")
     @PreAuthorize("hasAuthority('device:write:self')")
     @PutMapping(path="/devices/auth/me", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.TEXT_PLAIN_VALUE)
     public ResponseEntity<String> updateDeviceAuth(@Valid @RequestBody UpdateDeviceRequest dto) {
@@ -288,6 +298,7 @@ public class DeviceController {
     }
 
     // Admin revoke refresh
+    @ActionLog("撤销设备刷新令牌")
     @PreAuthorize("hasAuthority('operator:write')")
     @DeleteMapping(path = "/admin/devices/tokens/refresh", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.TEXT_PLAIN_VALUE)
     public ResponseEntity<String> revokeRefresh(@Valid @RequestBody Map<String, String> body) {
@@ -296,6 +307,7 @@ public class DeviceController {
     }
 
     // Admin revoke access
+    @ActionLog("撤销设备访问令牌")
     @PreAuthorize("hasAuthority('operator:write')")
     @PostMapping(path = "/admin/devices/tokens/access/revoke", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.TEXT_PLAIN_VALUE)
     public ResponseEntity<String> revokeAccess(@Valid @RequestBody Map<String, String> body) {

@@ -1,0 +1,265 @@
+2025-10-16 15:45:16.471 [main] INFO  dev.ouanu.iems.IemsApplication - Starting IemsApplication using Java 21.0.8 with PID 20313 (/home/ouanu/workspace/iems/target/classes started by ouanu in /home/ouanu/workspace/iems)
+2025-10-16 15:45:16.473 [main] DEBUG dev.ouanu.iems.IemsApplication - Running with Spring Boot v3.5.6, Spring v6.2.11
+2025-10-16 15:45:16.475 [main] INFO  dev.ouanu.iems.IemsApplication - The following 1 profile is active: "dev"
+2025-10-16 15:45:16.932 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Multiple Spring Data modules found, entering strict repository configuration mode
+2025-10-16 15:45:16.933 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data JDBC repositories in DEFAULT mode.
+2025-10-16 15:45:16.955 [main] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data JDBC - Could not safely identify store assignment for repository candidate interface dev.ouanu.iems.repository.AccessTokenBlacklistRepository; If you want this repository to be a JDBC repository, consider annotating your entities with one of these annotations: org.springframework.data.relational.core.mapping.Table.
+2025-10-16 15:45:16.956 [main] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data JDBC - Could not safely identify store assignment for repository candidate interface dev.ouanu.iems.repository.ApkRepository; If you want this repository to be a JDBC repository, consider annotating your entities with one of these annotations: org.springframework.data.relational.core.mapping.Table.
+2025-10-16 15:45:16.957 [main] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data JDBC - Could not safely identify store assignment for repository candidate interface dev.ouanu.iems.repository.DeviceTokenRepository; If you want this repository to be a JDBC repository, consider annotating your entities with one of these annotations: org.springframework.data.relational.core.mapping.Table.
+2025-10-16 15:45:16.958 [main] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data JDBC - Could not safely identify store assignment for repository candidate interface dev.ouanu.iems.repository.OperatorTokenRepository; If you want this repository to be a JDBC repository, consider annotating your entities with one of these annotations: org.springframework.data.relational.core.mapping.Table.
+2025-10-16 15:45:16.958 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 21 ms. Found 0 JDBC repository interfaces.
+2025-10-16 15:45:16.979 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Multiple Spring Data modules found, entering strict repository configuration mode
+2025-10-16 15:45:16.980 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2025-10-16 15:45:17.076 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 94 ms. Found 4 MongoDB repository interfaces.
+2025-10-16 15:45:17.084 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Multiple Spring Data modules found, entering strict repository configuration mode
+2025-10-16 15:45:17.085 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data Redis repositories in DEFAULT mode.
+2025-10-16 15:45:17.095 [main] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface dev.ouanu.iems.repository.AccessTokenBlacklistRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+2025-10-16 15:45:17.095 [main] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface dev.ouanu.iems.repository.ApkRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+2025-10-16 15:45:17.096 [main] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface dev.ouanu.iems.repository.DeviceTokenRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+2025-10-16 15:45:17.096 [main] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface dev.ouanu.iems.repository.OperatorTokenRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+2025-10-16 15:45:17.096 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 4 ms. Found 0 Redis repository interfaces.
+2025-10-16 15:45:17.572 [main] INFO  o.s.b.w.e.tomcat.TomcatWebServer - Tomcat initialized with port 5770 (http)
+2025-10-16 15:45:17.583 [main] INFO  o.a.catalina.core.StandardService - Starting service [Tomcat]
+2025-10-16 15:45:17.583 [main] INFO  o.a.catalina.core.StandardEngine - Starting Servlet engine: [Apache Tomcat/10.1.46]
+2025-10-16 15:45:17.626 [main] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring embedded WebApplicationContext
+2025-10-16 15:45:17.627 [main] INFO  o.s.b.w.s.c.ServletWebServerApplicationContext - Root WebApplicationContext: initialization completed in 1119 ms
+2025-10-16 15:45:17.995 [main] INFO  org.mongodb.driver.client - MongoClient with metadata {"driver": {"name": "mongo-java-driver|sync|spring-boot", "version": "5.5.1"}, "os": {"type": "Linux", "name": "Linux", "architecture": "amd64", "version": "6.14.0-33-generic"}, "platform": "Java/Ubuntu/21.0.8+9-Ubuntu-0ubuntu125.04.1"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=MongoCredential{mechanism=null, userName='mongo_dev', source='admin', password=<hidden>, mechanismProperties=<hidden>}, transportSettings=null, commandListeners=[], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, EnumCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@70022d44, com.mongodb.Jep395RecordCodecProvider@7b1c501d, com.mongodb.KotlinCodecProvider@5abbb273]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:27817], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='30000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, heartbeatSocketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=10000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=120000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2025-10-16 15:45:18.020 [cluster-ClusterId{value='68f0a28d7dbfb670b929d6af', description='null'}-localhost:27817] INFO  org.mongodb.driver.cluster - Monitor thread successfully connected to server with description ServerDescription{address=localhost:27817, type=STANDALONE, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=17, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=21419344, minRoundTripTimeNanos=0}
+2025-10-16 15:45:18.157 [main] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Starting...
+2025-10-16 15:45:18.275 [main] INFO  com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@3e839aa3
+2025-10-16 15:45:18.276 [main] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Start completed.
+2025-10-16 15:45:18.533 [main] DEBUG d.o.i.filter.JwtAuthenticationFilter - Filter 'jwtAuthenticationFilter' configured for use
+2025-10-16 15:45:18.574 [main] DEBUG d.o.i.m.S.createTableIfNotExists - ==>  Preparing: CREATE TABLE IF NOT EXISTS snowflake_ids ( id BIGINT PRIMARY KEY, type VARCHAR(50) NOT NULL, node VARCHAR(50) NOT NULL, created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP );
+2025-10-16 15:45:18.592 [main] DEBUG d.o.i.m.S.createTableIfNotExists - ==> Parameters: 
+2025-10-16 15:45:18.606 [main] DEBUG d.o.i.m.S.createTableIfNotExists - <==    Updates: 0
+2025-10-16 15:45:18.929 [main] WARN  o.s.b.a.s.s.UserDetailsServiceAutoConfiguration - 
+
+Using generated security password: 470310d4-adcc-4695-954d-1d29f2ee0822
+
+This generated password is for development use only. Your security configuration must be updated before running your application in production.
+
+2025-10-16 15:45:18.935 [main] INFO  o.s.s.c.a.a.c.InitializeUserDetailsBeanManagerConfigurer$InitializeUserDetailsManagerConfigurer - Global AuthenticationManager configured with UserDetailsService bean with name inMemoryUserDetailsManager
+2025-10-16 15:45:19.440 [main] INFO  o.s.b.w.e.tomcat.TomcatWebServer - Tomcat started on port 5770 (http) with context path '/'
+2025-10-16 15:45:19.446 [main] INFO  dev.ouanu.iems.IemsApplication - Started IemsApplication in 3.356 seconds (process running for 3.541)
+2025-10-16 15:45:19.449 [main] DEBUG d.o.i.m.O.createTableIfNotExists - ==>  Preparing: CREATE TABLE IF NOT EXISTS operators ( id BIGINT NOT NULL AUTO_INCREMENT, uuid VARCHAR(36) NOT NULL, password_hash VARCHAR(255) NOT NULL, display_name VARCHAR(255), phone VARCHAR(64), email VARCHAR(255), account_type VARCHAR(32), department VARCHAR(128), team VARCHAR(128), position VARCHAR(128), level VARCHAR(32), active TINYINT(1) DEFAULT 1, created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, PRIMARY KEY (id), UNIQUE KEY uq_operators_uuid (uuid), UNIQUE KEY uq_operators_phone (phone), UNIQUE KEY uq_operators_email (email) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+2025-10-16 15:45:19.450 [main] DEBUG d.o.i.m.O.createTableIfNotExists - ==> Parameters: 
+2025-10-16 15:45:19.455 [main] DEBUG d.o.i.m.O.createTableIfNotExists - <==    Updates: 0
+2025-10-16 15:45:19.456 [main] INFO  d.o.i.c.DatabaseInitializationRunner - Ensured operators table exists (createTableIfNotExists executed).
+2025-10-16 15:45:19.456 [main] DEBUG d.o.i.m.P.createTableIfNotExists - ==>  Preparing: CREATE TABLE IF NOT EXISTS permissions ( id BIGINT PRIMARY KEY, permissions TEXT NOT NULL, created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP );
+2025-10-16 15:45:19.457 [main] DEBUG d.o.i.m.P.createTableIfNotExists - ==> Parameters: 
+2025-10-16 15:45:19.465 [main] DEBUG d.o.i.m.P.createTableIfNotExists - <==    Updates: 0
+2025-10-16 15:45:19.465 [main] INFO  d.o.i.c.DatabaseInitializationRunner - Ensured operator_permissions table exists.
+2025-10-16 15:45:19.466 [main] DEBUG d.o.i.m.D.createTableIfNotExists - ==>  Preparing: CREATE TABLE IF NOT EXISTS devices ( id BIGINT PRIMARY KEY AUTO_INCREMENT, uuid VARCHAR(128) NOT NULL, mac_address VARCHAR(64), signature_hash VARCHAR(128), active TINYINT(1) DEFAULT 0, locked TINYINT(1) DEFAULT 0, customer_id BIGINT, customer_group VARCHAR(128), model VARCHAR(128), brand VARCHAR(128), serialno VARCHAR(128), android_version VARCHAR(64), app_version VARCHAR(64), rom_version VARCHAR(255), created_at TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP, updated_at TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, UNIQUE KEY uk_uuid (uuid) );
+2025-10-16 15:45:19.466 [main] DEBUG d.o.i.m.D.createTableIfNotExists - ==> Parameters: 
+2025-10-16 15:45:19.471 [main] DEBUG d.o.i.m.D.createTableIfNotExists - <==    Updates: 0
+2025-10-16 15:45:19.476 [main] INFO  d.o.i.c.DatabaseInitializationRunner - Ensured devices table exists.
+2025-10-16 15:45:19.477 [main] DEBUG d.o.i.m.S.createTableIfNotExists - ==>  Preparing: CREATE TABLE IF NOT EXISTS snowflake_ids ( id BIGINT PRIMARY KEY, type VARCHAR(50) NOT NULL, node VARCHAR(50) NOT NULL, created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP );
+2025-10-16 15:45:19.477 [main] DEBUG d.o.i.m.S.createTableIfNotExists - ==> Parameters: 
+2025-10-16 15:45:19.479 [main] DEBUG d.o.i.m.S.createTableIfNotExists - <==    Updates: 0
+2025-10-16 15:45:19.483 [main] INFO  d.o.i.c.DatabaseInitializationRunner - Ensured snowflake_ids table exists.
+2025-10-16 15:45:19.490 [main] DEBUG d.o.i.m.OperatorMapper.existsByEmail - ==>  Preparing: SELECT COUNT(1) FROM operators WHERE email = ?
+2025-10-16 15:45:19.491 [main] DEBUG d.o.i.m.OperatorMapper.existsByEmail - ==> Parameters: admin@example.com(String)
+2025-10-16 15:45:19.561 [main] DEBUG d.o.i.m.OperatorMapper.existsByEmail - <==      Total: 1
+2025-10-16 15:45:19.562 [main] INFO  d.o.i.c.DatabaseInitializationRunner - Admin user already exists (email=admin@example.com)
+2025-10-16 15:45:45.536 [http-nio-5770-exec-1] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring DispatcherServlet 'dispatcherServlet'
+2025-10-16 15:45:45.536 [http-nio-5770-exec-1] INFO  o.s.web.servlet.DispatcherServlet - Initializing Servlet 'dispatcherServlet'
+2025-10-16 15:45:45.538 [http-nio-5770-exec-1] INFO  o.s.web.servlet.DispatcherServlet - Completed initialization in 1 ms
+2025-10-16 15:45:45.937 [http-nio-5770-exec-7] INFO  dev.ouanu.iems.aop.ServiceLogAspect - ID: 600f5563-a8ec-4e35-9dc3-4d65b4ff41bc, 方法: dev.ouanu.iems.service.OperatorService.refreshToken, 参数: ["eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIzNjg2ODYwOTYwMjE4NTIxNjAiLCJpYXQiOjE3NjA1ODU2MDgsImV4cCI6MTc2MTU5MzYwOCwianRpIjoiYTQ0Zjg2OTYtZDU2Ni00NjU3LTg2MTYtMzdjZTEwZmNlN2FlIn0.jZQtZiV6Kp3Olj4WMxkbr4jm64bADMXPdDqjASiAxBU"]
+2025-10-16 15:45:46.109 [http-nio-5770-exec-7] INFO  dev.ouanu.iems.aop.ServiceLogAspect - ID: 600f5563-a8ec-4e35-9dc3-4d65b4ff41bc, 方法: dev.ouanu.iems.service.OperatorService.refreshToken 执行完毕, 耗时: 178 ms
+2025-10-16 15:45:46.141 [http-nio-5770-exec-6] INFO  dev.ouanu.iems.aop.ServiceLogAspect - ID: 9bfed757-be8f-4697-8506-3bc217950578, 方法: dev.ouanu.iems.service.TokenService.isTokenBlacklisted, 参数: ["712ebcbd-4c18-4375-8349-5498cf309979"]
+2025-10-16 15:45:46.155 [http-nio-5770-exec-6] INFO  dev.ouanu.iems.aop.ServiceLogAspect - ID: 9bfed757-be8f-4697-8506-3bc217950578, 方法: dev.ouanu.iems.service.TokenService.isTokenBlacklisted 执行完毕, 耗时: 14 ms
+2025-10-16 15:45:46.156 [http-nio-5770-exec-6] INFO  dev.ouanu.iems.aop.ServiceLogAspect - ID: 98316e57-fcb1-4405-8993-9656813b40ab, 方法: dev.ouanu.iems.service.PermissionService.getPermissionVOById, 参数: [368686096021852160]
+2025-10-16 15:45:46.159 [http-nio-5770-exec-6] DEBUG d.o.i.m.PermissionMapper.selectById - ==>  Preparing: SELECT * FROM permissions WHERE id = ?
+2025-10-16 15:45:46.161 [http-nio-5770-exec-6] DEBUG d.o.i.m.PermissionMapper.selectById - ==> Parameters: 368686096021852160(Long)
+2025-10-16 15:45:46.169 [http-nio-5770-exec-6] DEBUG d.o.i.m.PermissionMapper.selectById - <==      Total: 1
+2025-10-16 15:45:46.170 [http-nio-5770-exec-6] INFO  dev.ouanu.iems.aop.ServiceLogAspect - ID: 98316e57-fcb1-4405-8993-9656813b40ab, 方法: dev.ouanu.iems.service.PermissionService.getPermissionVOById 执行完毕, 耗时: 14 ms
+2025-10-16 15:45:46.173 [http-nio-5770-exec-6] INFO  dev.ouanu.iems.aop.ServiceLogAspect - ID: e9b5f6b9-bff5-4073-b659-9bb55c45dd33, 方法: dev.ouanu.iems.service.TokenService.isTokenBlacklisted, 参数: ["712ebcbd-4c18-4375-8349-5498cf309979"]
+2025-10-16 15:45:46.177 [http-nio-5770-exec-6] INFO  dev.ouanu.iems.aop.ServiceLogAspect - ID: e9b5f6b9-bff5-4073-b659-9bb55c45dd33, 方法: dev.ouanu.iems.service.TokenService.isTokenBlacklisted 执行完毕, 耗时: 4 ms
+2025-10-16 15:45:46.178 [http-nio-5770-exec-6] INFO  dev.ouanu.iems.aop.ServiceLogAspect - ID: d6f6e771-63ec-47cd-a83f-307f06a50b87, 方法: dev.ouanu.iems.service.PermissionService.getPermissionVOById, 参数: [368686096021852160]
+2025-10-16 15:45:46.178 [http-nio-5770-exec-6] DEBUG d.o.i.m.PermissionMapper.selectById - ==>  Preparing: SELECT * FROM permissions WHERE id = ?
+2025-10-16 15:45:46.179 [http-nio-5770-exec-6] DEBUG d.o.i.m.PermissionMapper.selectById - ==> Parameters: 368686096021852160(Long)
+2025-10-16 15:45:46.181 [http-nio-5770-exec-6] DEBUG d.o.i.m.PermissionMapper.selectById - <==      Total: 1
+2025-10-16 15:45:46.182 [http-nio-5770-exec-6] INFO  dev.ouanu.iems.aop.ServiceLogAspect - ID: d6f6e771-63ec-47cd-a83f-307f06a50b87, 方法: dev.ouanu.iems.service.PermissionService.getPermissionVOById 执行完毕, 耗时: 4 ms
+2025-10-16 15:45:46.491 [http-nio-5770-exec-6] INFO  dev.ouanu.iems.aop.ServiceLogAspect - ID: 6fe93e3b-7f1a-4132-920f-01e1e1c77b89, 方法: dev.ouanu.iems.service.ApkService.queryApks, 参数: [{"appName":null,"packageName":null,"versionName":null,"organization":null,"group":null,"fuzzy":null,"offset":0,"limit":11}]
+2025-10-16 15:45:46.501 [http-nio-5770-exec-6] INFO  dev.ouanu.iems.aop.ServiceLogAspect - ID: 6fe93e3b-7f1a-4132-920f-01e1e1c77b89, 方法: dev.ouanu.iems.service.ApkService.queryApks 执行完毕, 耗时: 11 ms
+2025-10-16 15:45:47.969 [http-nio-5770-exec-9] INFO  dev.ouanu.iems.aop.ServiceLogAspect - ID: b26140c0-ffb1-4db9-b970-15751f1bca1b, 方法: dev.ouanu.iems.service.TokenService.isTokenBlacklisted, 参数: ["712ebcbd-4c18-4375-8349-5498cf309979"]
+2025-10-16 15:45:47.976 [http-nio-5770-exec-9] INFO  dev.ouanu.iems.aop.ServiceLogAspect - ID: b26140c0-ffb1-4db9-b970-15751f1bca1b, 方法: dev.ouanu.iems.service.TokenService.isTokenBlacklisted 执行完毕, 耗时: 7 ms
+2025-10-16 15:45:47.982 [http-nio-5770-exec-9] INFO  dev.ouanu.iems.aop.ServiceLogAspect - ID: faa50fc9-b8b0-467a-ad21-3caf8650278c, 方法: dev.ouanu.iems.service.PermissionService.getPermissionVOById, 参数: [368686096021852160]
+2025-10-16 15:45:47.986 [http-nio-5770-exec-9] DEBUG d.o.i.m.PermissionMapper.selectById - ==>  Preparing: SELECT * FROM permissions WHERE id = ?
+2025-10-16 15:45:47.987 [http-nio-5770-exec-9] DEBUG d.o.i.m.PermissionMapper.selectById - ==> Parameters: 368686096021852160(Long)
+2025-10-16 15:45:47.989 [http-nio-5770-exec-9] DEBUG d.o.i.m.PermissionMapper.selectById - <==      Total: 1
+2025-10-16 15:45:47.990 [http-nio-5770-exec-9] INFO  dev.ouanu.iems.aop.ServiceLogAspect - ID: faa50fc9-b8b0-467a-ad21-3caf8650278c, 方法: dev.ouanu.iems.service.PermissionService.getPermissionVOById 执行完毕, 耗时: 8 ms
+2025-10-16 15:45:47.991 [http-nio-5770-exec-9] INFO  dev.ouanu.iems.aop.ServiceLogAspect - ID: 0846f6eb-e82c-430f-b075-4a83b790db91, 方法: dev.ouanu.iems.service.TokenService.isTokenBlacklisted, 参数: ["712ebcbd-4c18-4375-8349-5498cf309979"]
+2025-10-16 15:45:47.993 [http-nio-5770-exec-9] INFO  dev.ouanu.iems.aop.ServiceLogAspect - ID: 0846f6eb-e82c-430f-b075-4a83b790db91, 方法: dev.ouanu.iems.service.TokenService.isTokenBlacklisted 执行完毕, 耗时: 3 ms
+2025-10-16 15:45:47.996 [http-nio-5770-exec-9] INFO  dev.ouanu.iems.aop.ServiceLogAspect - ID: 006f1469-cb3f-4f17-90a4-ed85d7a625d0, 方法: dev.ouanu.iems.service.PermissionService.getPermissionVOById, 参数: [368686096021852160]
+2025-10-16 15:45:47.996 [http-nio-5770-exec-9] DEBUG d.o.i.m.PermissionMapper.selectById - ==>  Preparing: SELECT * FROM permissions WHERE id = ?
+2025-10-16 15:45:47.996 [http-nio-5770-exec-9] DEBUG d.o.i.m.PermissionMapper.selectById - ==> Parameters: 368686096021852160(Long)
+2025-10-16 15:45:48.005 [http-nio-5770-exec-9] DEBUG d.o.i.m.PermissionMapper.selectById - <==      Total: 1
+2025-10-16 15:45:48.006 [http-nio-5770-exec-9] INFO  dev.ouanu.iems.aop.ServiceLogAspect - ID: 006f1469-cb3f-4f17-90a4-ed85d7a625d0, 方法: dev.ouanu.iems.service.PermissionService.getPermissionVOById 执行完毕, 耗时: 10 ms
+2025-10-16 15:45:48.017 [http-nio-5770-exec-9] INFO  dev.ouanu.iems.aop.ServiceLogAspect - ID: 938aa5cf-a01a-46e2-b3d9-c977d6c64540, 方法: dev.ouanu.iems.service.OperatorService.listOperators, 参数: [0,11]
+2025-10-16 15:45:48.034 [http-nio-5770-exec-9] DEBUG d.o.iems.mapper.OperatorMapper.list - ==>  Preparing: SELECT id, uuid, password_hash, display_name, phone, email, account_type, department, team, position, level, active, created_at, updated_at FROM operators LIMIT ? OFFSET ?
+2025-10-16 15:45:48.039 [http-nio-5770-exec-9] DEBUG d.o.iems.mapper.OperatorMapper.list - ==> Parameters: 11(Integer), 0(Integer)
+2025-10-16 15:45:48.047 [http-nio-5770-exec-9] DEBUG d.o.iems.mapper.OperatorMapper.list - <==      Total: 11
+2025-10-16 15:45:48.049 [http-nio-5770-exec-9] INFO  dev.ouanu.iems.aop.ServiceLogAspect - ID: 938aa5cf-a01a-46e2-b3d9-c977d6c64540, 方法: dev.ouanu.iems.service.OperatorService.listOperators 执行完毕, 耗时: 33 ms
+2025-10-16 15:45:48.957 [http-nio-5770-exec-1] INFO  dev.ouanu.iems.aop.ServiceLogAspect - ID: 0ec96657-5c31-432b-a079-8962041fbfcd, 方法: dev.ouanu.iems.service.TokenService.isTokenBlacklisted, 参数: ["712ebcbd-4c18-4375-8349-5498cf309979"]
+2025-10-16 15:45:48.966 [http-nio-5770-exec-1] INFO  dev.ouanu.iems.aop.ServiceLogAspect - ID: 0ec96657-5c31-432b-a079-8962041fbfcd, 方法: dev.ouanu.iems.service.TokenService.isTokenBlacklisted 执行完毕, 耗时: 9 ms
+2025-10-16 15:45:48.967 [http-nio-5770-exec-1] INFO  dev.ouanu.iems.aop.ServiceLogAspect - ID: be84fa95-2b3c-4366-a9e6-3b8102ea4c04, 方法: dev.ouanu.iems.service.PermissionService.getPermissionVOById, 参数: [368686096021852160]
+2025-10-16 15:45:48.969 [http-nio-5770-exec-1] DEBUG d.o.i.m.PermissionMapper.selectById - ==>  Preparing: SELECT * FROM permissions WHERE id = ?
+2025-10-16 15:45:48.969 [http-nio-5770-exec-1] DEBUG d.o.i.m.PermissionMapper.selectById - ==> Parameters: 368686096021852160(Long)
+2025-10-16 15:45:48.972 [http-nio-5770-exec-1] DEBUG d.o.i.m.PermissionMapper.selectById - <==      Total: 1
+2025-10-16 15:45:48.972 [http-nio-5770-exec-1] INFO  dev.ouanu.iems.aop.ServiceLogAspect - ID: be84fa95-2b3c-4366-a9e6-3b8102ea4c04, 方法: dev.ouanu.iems.service.PermissionService.getPermissionVOById 执行完毕, 耗时: 5 ms
+2025-10-16 15:45:48.974 [http-nio-5770-exec-1] INFO  dev.ouanu.iems.aop.ServiceLogAspect - ID: e877cde5-b4c0-41fc-abdf-2bcd91780ed4, 方法: dev.ouanu.iems.service.TokenService.isTokenBlacklisted, 参数: ["712ebcbd-4c18-4375-8349-5498cf309979"]
+2025-10-16 15:45:48.978 [http-nio-5770-exec-1] INFO  dev.ouanu.iems.aop.ServiceLogAspect - ID: e877cde5-b4c0-41fc-abdf-2bcd91780ed4, 方法: dev.ouanu.iems.service.TokenService.isTokenBlacklisted 执行完毕, 耗时: 4 ms
+2025-10-16 15:45:48.979 [http-nio-5770-exec-1] INFO  dev.ouanu.iems.aop.ServiceLogAspect - ID: 18eca8f9-06e1-4855-bd9e-ca7f65db673f, 方法: dev.ouanu.iems.service.PermissionService.getPermissionVOById, 参数: [368686096021852160]
+2025-10-16 15:45:48.979 [http-nio-5770-exec-1] DEBUG d.o.i.m.PermissionMapper.selectById - ==>  Preparing: SELECT * FROM permissions WHERE id = ?
+2025-10-16 15:45:48.980 [http-nio-5770-exec-1] DEBUG d.o.i.m.PermissionMapper.selectById - ==> Parameters: 368686096021852160(Long)
+2025-10-16 15:45:48.981 [http-nio-5770-exec-1] DEBUG d.o.i.m.PermissionMapper.selectById - <==      Total: 1
+2025-10-16 15:45:48.982 [http-nio-5770-exec-1] INFO  dev.ouanu.iems.aop.ServiceLogAspect - ID: 18eca8f9-06e1-4855-bd9e-ca7f65db673f, 方法: dev.ouanu.iems.service.PermissionService.getPermissionVOById 执行完毕, 耗时: 3 ms
+2025-10-16 15:45:48.987 [http-nio-5770-exec-1] INFO  dev.ouanu.iems.aop.ServiceLogAspect - ID: a44475e6-b632-4ccb-a519-f1553a7905a6, 方法: dev.ouanu.iems.service.StatisticsService.getDashboardStats, 参数: []
+2025-10-16 15:45:48.988 [http-nio-5770-exec-1] DEBUG d.o.iems.mapper.OperatorMapper.count - ==>  Preparing: SELECT COUNT(1) FROM operators
+2025-10-16 15:45:48.988 [http-nio-5770-exec-1] DEBUG d.o.iems.mapper.OperatorMapper.count - ==> Parameters: 
+2025-10-16 15:45:48.990 [http-nio-5770-exec-1] DEBUG d.o.iems.mapper.OperatorMapper.count - <==      Total: 1
+2025-10-16 15:45:48.991 [http-nio-5770-exec-1] DEBUG d.o.iems.mapper.DeviceMapper.count - ==>  Preparing: SELECT COUNT(1) FROM devices
+2025-10-16 15:45:48.991 [http-nio-5770-exec-1] DEBUG d.o.iems.mapper.DeviceMapper.count - ==> Parameters: 
+2025-10-16 15:45:48.994 [http-nio-5770-exec-1] DEBUG d.o.iems.mapper.DeviceMapper.count - <==      Total: 1
+2025-10-16 15:45:49.003 [http-nio-5770-exec-1] INFO  dev.ouanu.iems.aop.ServiceLogAspect - ID: a44475e6-b632-4ccb-a519-f1553a7905a6, 方法: dev.ouanu.iems.service.StatisticsService.getDashboardStats 执行完毕, 耗时: 16 ms
+2025-10-16 15:45:50.097 [http-nio-5770-exec-8] INFO  dev.ouanu.iems.aop.ServiceLogAspect - ID: ac27e196-c08b-4c72-ac70-50ad32f31f94, 方法: dev.ouanu.iems.service.TokenService.isTokenBlacklisted, 参数: ["712ebcbd-4c18-4375-8349-5498cf309979"]
+2025-10-16 15:45:50.102 [http-nio-5770-exec-8] INFO  dev.ouanu.iems.aop.ServiceLogAspect - ID: ac27e196-c08b-4c72-ac70-50ad32f31f94, 方法: dev.ouanu.iems.service.TokenService.isTokenBlacklisted 执行完毕, 耗时: 5 ms
+2025-10-16 15:45:50.105 [http-nio-5770-exec-8] INFO  dev.ouanu.iems.aop.ServiceLogAspect - ID: 1aebe82f-67f7-453f-8371-e0e38725963d, 方法: dev.ouanu.iems.service.PermissionService.getPermissionVOById, 参数: [368686096021852160]
+2025-10-16 15:45:50.106 [http-nio-5770-exec-8] DEBUG d.o.i.m.PermissionMapper.selectById - ==>  Preparing: SELECT * FROM permissions WHERE id = ?
+2025-10-16 15:45:50.107 [http-nio-5770-exec-8] DEBUG d.o.i.m.PermissionMapper.selectById - ==> Parameters: 368686096021852160(Long)
+2025-10-16 15:45:50.109 [http-nio-5770-exec-8] DEBUG d.o.i.m.PermissionMapper.selectById - <==      Total: 1
+2025-10-16 15:45:50.109 [http-nio-5770-exec-8] INFO  dev.ouanu.iems.aop.ServiceLogAspect - ID: 1aebe82f-67f7-453f-8371-e0e38725963d, 方法: dev.ouanu.iems.service.PermissionService.getPermissionVOById 执行完毕, 耗时: 4 ms
+2025-10-16 15:45:50.110 [http-nio-5770-exec-8] INFO  dev.ouanu.iems.aop.ServiceLogAspect - ID: 03b455bc-941e-4a2e-b0af-a5287db3f646, 方法: dev.ouanu.iems.service.TokenService.isTokenBlacklisted, 参数: ["712ebcbd-4c18-4375-8349-5498cf309979"]
+2025-10-16 15:45:50.113 [http-nio-5770-exec-8] INFO  dev.ouanu.iems.aop.ServiceLogAspect - ID: 03b455bc-941e-4a2e-b0af-a5287db3f646, 方法: dev.ouanu.iems.service.TokenService.isTokenBlacklisted 执行完毕, 耗时: 3 ms
+2025-10-16 15:45:50.114 [http-nio-5770-exec-8] INFO  dev.ouanu.iems.aop.ServiceLogAspect - ID: 9f477f9e-45db-450a-9eed-63f01d3a00d7, 方法: dev.ouanu.iems.service.PermissionService.getPermissionVOById, 参数: [368686096021852160]
+2025-10-16 15:45:50.114 [http-nio-5770-exec-8] DEBUG d.o.i.m.PermissionMapper.selectById - ==>  Preparing: SELECT * FROM permissions WHERE id = ?
+2025-10-16 15:45:50.114 [http-nio-5770-exec-8] DEBUG d.o.i.m.PermissionMapper.selectById - ==> Parameters: 368686096021852160(Long)
+2025-10-16 15:45:50.116 [http-nio-5770-exec-8] DEBUG d.o.i.m.PermissionMapper.selectById - <==      Total: 1
+2025-10-16 15:45:50.116 [http-nio-5770-exec-8] INFO  dev.ouanu.iems.aop.ServiceLogAspect - ID: 9f477f9e-45db-450a-9eed-63f01d3a00d7, 方法: dev.ouanu.iems.service.PermissionService.getPermissionVOById 执行完毕, 耗时: 3 ms
+2025-10-16 16:06:07.595 [SpringApplicationShutdownHook] INFO  o.s.b.w.e.tomcat.GracefulShutdown - Commencing graceful shutdown. Waiting for active requests to complete
+2025-10-16 16:06:07.604 [tomcat-shutdown] INFO  o.s.b.w.e.tomcat.GracefulShutdown - Graceful shutdown complete
+2025-10-16 16:06:07.787 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown initiated...
+2025-10-16 16:06:07.796 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown completed.
+2025-10-16 16:06:15.810 [main] INFO  dev.ouanu.iems.IemsApplication - Starting IemsApplication using Java 21.0.8 with PID 40992 (/home/ouanu/workspace/iems/target/classes started by ouanu in /home/ouanu/workspace/iems)
+2025-10-16 16:06:15.811 [main] DEBUG dev.ouanu.iems.IemsApplication - Running with Spring Boot v3.5.6, Spring v6.2.11
+2025-10-16 16:06:15.812 [main] INFO  dev.ouanu.iems.IemsApplication - The following 1 profile is active: "dev"
+2025-10-16 16:06:16.423 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Multiple Spring Data modules found, entering strict repository configuration mode
+2025-10-16 16:06:16.424 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data JDBC repositories in DEFAULT mode.
+2025-10-16 16:06:16.443 [main] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data JDBC - Could not safely identify store assignment for repository candidate interface dev.ouanu.iems.repository.AccessTokenBlacklistRepository; If you want this repository to be a JDBC repository, consider annotating your entities with one of these annotations: org.springframework.data.relational.core.mapping.Table.
+2025-10-16 16:06:16.444 [main] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data JDBC - Could not safely identify store assignment for repository candidate interface dev.ouanu.iems.repository.ApkRepository; If you want this repository to be a JDBC repository, consider annotating your entities with one of these annotations: org.springframework.data.relational.core.mapping.Table.
+2025-10-16 16:06:16.448 [main] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data JDBC - Could not safely identify store assignment for repository candidate interface dev.ouanu.iems.repository.DeviceTokenRepository; If you want this repository to be a JDBC repository, consider annotating your entities with one of these annotations: org.springframework.data.relational.core.mapping.Table.
+2025-10-16 16:06:16.449 [main] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data JDBC - Could not safely identify store assignment for repository candidate interface dev.ouanu.iems.repository.OperatorTokenRepository; If you want this repository to be a JDBC repository, consider annotating your entities with one of these annotations: org.springframework.data.relational.core.mapping.Table.
+2025-10-16 16:06:16.449 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 21 ms. Found 0 JDBC repository interfaces.
+2025-10-16 16:06:16.469 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Multiple Spring Data modules found, entering strict repository configuration mode
+2025-10-16 16:06:16.469 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2025-10-16 16:06:16.547 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 77 ms. Found 4 MongoDB repository interfaces.
+2025-10-16 16:06:16.555 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Multiple Spring Data modules found, entering strict repository configuration mode
+2025-10-16 16:06:16.556 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data Redis repositories in DEFAULT mode.
+2025-10-16 16:06:16.565 [main] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface dev.ouanu.iems.repository.AccessTokenBlacklistRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+2025-10-16 16:06:16.566 [main] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface dev.ouanu.iems.repository.ApkRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+2025-10-16 16:06:16.566 [main] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface dev.ouanu.iems.repository.DeviceTokenRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+2025-10-16 16:06:16.566 [main] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface dev.ouanu.iems.repository.OperatorTokenRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+2025-10-16 16:06:16.567 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 4 ms. Found 0 Redis repository interfaces.
+2025-10-16 16:06:17.062 [main] INFO  o.s.b.w.e.tomcat.TomcatWebServer - Tomcat initialized with port 5770 (http)
+2025-10-16 16:06:17.073 [main] INFO  o.a.catalina.core.StandardService - Starting service [Tomcat]
+2025-10-16 16:06:17.074 [main] INFO  o.a.catalina.core.StandardEngine - Starting Servlet engine: [Apache Tomcat/10.1.46]
+2025-10-16 16:06:17.104 [main] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring embedded WebApplicationContext
+2025-10-16 16:06:17.105 [main] INFO  o.s.b.w.s.c.ServletWebServerApplicationContext - Root WebApplicationContext: initialization completed in 1260 ms
+2025-10-16 16:06:17.448 [main] INFO  org.mongodb.driver.client - MongoClient with metadata {"driver": {"name": "mongo-java-driver|sync|spring-boot", "version": "5.5.1"}, "os": {"type": "Linux", "name": "Linux", "architecture": "amd64", "version": "6.14.0-33-generic"}, "platform": "Java/Ubuntu/21.0.8+9-Ubuntu-0ubuntu125.04.1"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=MongoCredential{mechanism=null, userName='mongo_dev', source='admin', password=<hidden>, mechanismProperties=<hidden>}, transportSettings=null, commandListeners=[], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, EnumCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@40017e98, com.mongodb.Jep395RecordCodecProvider@4fbe486c, com.mongodb.KotlinCodecProvider@dbc7e0a]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:27817], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='30000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, heartbeatSocketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=10000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=120000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2025-10-16 16:06:17.461 [cluster-ClusterId{value='68f0a7794fb6dc6ca26c8299', description='null'}-localhost:27817] INFO  org.mongodb.driver.cluster - Monitor thread successfully connected to server with description ServerDescription{address=localhost:27817, type=STANDALONE, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=17, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=11710096, minRoundTripTimeNanos=0}
+2025-10-16 16:06:17.605 [main] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Starting...
+2025-10-16 16:06:17.763 [main] INFO  com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@6c49ea0c
+2025-10-16 16:06:17.765 [main] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Start completed.
+2025-10-16 16:06:18.078 [main] DEBUG d.o.i.filter.JwtAuthenticationFilter - Filter 'jwtAuthenticationFilter' configured for use
+2025-10-16 16:06:18.116 [main] DEBUG d.o.i.m.S.createTableIfNotExists - ==>  Preparing: CREATE TABLE IF NOT EXISTS snowflake_ids ( id BIGINT PRIMARY KEY, type VARCHAR(50) NOT NULL, node VARCHAR(50) NOT NULL, created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP );
+2025-10-16 16:06:18.131 [main] DEBUG d.o.i.m.S.createTableIfNotExists - ==> Parameters: 
+2025-10-16 16:06:18.134 [main] DEBUG d.o.i.m.S.createTableIfNotExists - <==    Updates: 0
+2025-10-16 16:06:18.500 [main] WARN  o.s.b.a.s.s.UserDetailsServiceAutoConfiguration - 
+
+Using generated security password: 36943969-2e49-4339-aeb4-56153f6d67b4
+
+This generated password is for development use only. Your security configuration must be updated before running your application in production.
+
+2025-10-16 16:06:18.507 [main] INFO  o.s.s.c.a.a.c.InitializeUserDetailsBeanManagerConfigurer$InitializeUserDetailsManagerConfigurer - Global AuthenticationManager configured with UserDetailsService bean with name inMemoryUserDetailsManager
+2025-10-16 16:06:19.342 [main] INFO  o.s.b.w.e.tomcat.TomcatWebServer - Tomcat started on port 5770 (http) with context path '/'
+2025-10-16 16:06:19.351 [main] INFO  dev.ouanu.iems.IemsApplication - Started IemsApplication in 3.926 seconds (process running for 4.175)
+2025-10-16 16:06:19.355 [main] DEBUG d.o.i.m.O.createTableIfNotExists - ==>  Preparing: CREATE TABLE IF NOT EXISTS operators ( id BIGINT NOT NULL AUTO_INCREMENT, uuid VARCHAR(36) NOT NULL, password_hash VARCHAR(255) NOT NULL, display_name VARCHAR(255), phone VARCHAR(64), email VARCHAR(255), account_type VARCHAR(32), department VARCHAR(128), team VARCHAR(128), position VARCHAR(128), level VARCHAR(32), active TINYINT(1) DEFAULT 1, created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, PRIMARY KEY (id), UNIQUE KEY uq_operators_uuid (uuid), UNIQUE KEY uq_operators_phone (phone), UNIQUE KEY uq_operators_email (email) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+2025-10-16 16:06:19.360 [main] DEBUG d.o.i.m.O.createTableIfNotExists - ==> Parameters: 
+2025-10-16 16:06:19.363 [main] DEBUG d.o.i.m.O.createTableIfNotExists - <==    Updates: 0
+2025-10-16 16:06:19.365 [main] INFO  d.o.i.c.DatabaseInitializationRunner - Ensured operators table exists (createTableIfNotExists executed).
+2025-10-16 16:06:19.366 [main] DEBUG d.o.i.m.P.createTableIfNotExists - ==>  Preparing: CREATE TABLE IF NOT EXISTS permissions ( id BIGINT PRIMARY KEY, permissions TEXT NOT NULL, created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP );
+2025-10-16 16:06:19.367 [main] DEBUG d.o.i.m.P.createTableIfNotExists - ==> Parameters: 
+2025-10-16 16:06:19.370 [main] DEBUG d.o.i.m.P.createTableIfNotExists - <==    Updates: 0
+2025-10-16 16:06:19.373 [main] INFO  d.o.i.c.DatabaseInitializationRunner - Ensured operator_permissions table exists.
+2025-10-16 16:06:19.375 [main] DEBUG d.o.i.m.D.createTableIfNotExists - ==>  Preparing: CREATE TABLE IF NOT EXISTS devices ( id BIGINT PRIMARY KEY AUTO_INCREMENT, uuid VARCHAR(128) NOT NULL, mac_address VARCHAR(64), signature_hash VARCHAR(128), active TINYINT(1) DEFAULT 0, locked TINYINT(1) DEFAULT 0, customer_id BIGINT, customer_group VARCHAR(128), model VARCHAR(128), brand VARCHAR(128), serialno VARCHAR(128), android_version VARCHAR(64), app_version VARCHAR(64), rom_version VARCHAR(255), created_at TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP, updated_at TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, UNIQUE KEY uk_uuid (uuid) );
+2025-10-16 16:06:19.376 [main] DEBUG d.o.i.m.D.createTableIfNotExists - ==> Parameters: 
+2025-10-16 16:06:19.380 [main] DEBUG d.o.i.m.D.createTableIfNotExists - <==    Updates: 0
+2025-10-16 16:06:19.380 [main] INFO  d.o.i.c.DatabaseInitializationRunner - Ensured devices table exists.
+2025-10-16 16:06:19.383 [main] DEBUG d.o.i.m.S.createTableIfNotExists - ==>  Preparing: CREATE TABLE IF NOT EXISTS snowflake_ids ( id BIGINT PRIMARY KEY, type VARCHAR(50) NOT NULL, node VARCHAR(50) NOT NULL, created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP );
+2025-10-16 16:06:19.383 [main] DEBUG d.o.i.m.S.createTableIfNotExists - ==> Parameters: 
+2025-10-16 16:06:19.386 [main] DEBUG d.o.i.m.S.createTableIfNotExists - <==    Updates: 0
+2025-10-16 16:06:19.387 [main] INFO  d.o.i.c.DatabaseInitializationRunner - Ensured snowflake_ids table exists.
+2025-10-16 16:06:19.393 [main] DEBUG d.o.i.m.OperatorMapper.existsByEmail - ==>  Preparing: SELECT COUNT(1) FROM operators WHERE email = ?
+2025-10-16 16:06:19.396 [main] DEBUG d.o.i.m.OperatorMapper.existsByEmail - ==> Parameters: admin@example.com(String)
+2025-10-16 16:06:19.422 [main] DEBUG d.o.i.m.OperatorMapper.existsByEmail - <==      Total: 1
+2025-10-16 16:06:19.423 [main] INFO  d.o.i.c.DatabaseInitializationRunner - Admin user already exists (email=admin@example.com)
+2025-10-16 16:06:23.553 [http-nio-5770-exec-2] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring DispatcherServlet 'dispatcherServlet'
+2025-10-16 16:06:23.554 [http-nio-5770-exec-2] INFO  o.s.web.servlet.DispatcherServlet - Initializing Servlet 'dispatcherServlet'
+2025-10-16 16:06:23.555 [http-nio-5770-exec-2] INFO  o.s.web.servlet.DispatcherServlet - Completed initialization in 1 ms
+2025-10-16 16:06:26.094 [http-nio-5770-exec-8] INFO  dev.ouanu.iems.aop.ServiceLogAspect - ID: e4a15b91-99cc-4a05-be86-0495435baa06, 方法: dev.ouanu.iems.controller.OperatorController.login, 参数: [{"phone":"12345678910","password":"rxadmin8080"}]
+2025-10-16 16:06:26.095 [http-nio-5770-exec-8] DEBUG d.o.i.m.OperatorMapper.selectByPhone - ==>  Preparing: SELECT id, uuid, password_hash, display_name, phone, email, account_type, department, team, position, level, active, created_at, updated_at FROM operators WHERE phone = ?
+2025-10-16 16:06:26.096 [http-nio-5770-exec-8] DEBUG d.o.i.m.OperatorMapper.selectByPhone - ==> Parameters: 12345678910(String)
+2025-10-16 16:06:26.099 [http-nio-5770-exec-8] DEBUG d.o.i.m.OperatorMapper.selectByPhone - <==      Total: 1
+2025-10-16 16:06:26.505 [http-nio-5770-exec-8] INFO  dev.ouanu.iems.aop.ServiceLogAspect - ID: e4a15b91-99cc-4a05-be86-0495435baa06, 方法: dev.ouanu.iems.controller.OperatorController.login 执行完毕, 耗时: 426 ms
+2025-10-16 16:06:26.599 [http-nio-5770-exec-1] DEBUG d.o.i.m.PermissionMapper.selectById - ==>  Preparing: SELECT * FROM permissions WHERE id = ?
+2025-10-16 16:06:26.600 [http-nio-5770-exec-1] DEBUG d.o.i.m.PermissionMapper.selectById - ==> Parameters: 368686096021852160(Long)
+2025-10-16 16:06:26.605 [http-nio-5770-exec-1] DEBUG d.o.i.m.PermissionMapper.selectById - <==      Total: 1
+2025-10-16 16:06:26.610 [http-nio-5770-exec-1] DEBUG d.o.i.m.PermissionMapper.selectById - ==>  Preparing: SELECT * FROM permissions WHERE id = ?
+2025-10-16 16:06:26.611 [http-nio-5770-exec-1] DEBUG d.o.i.m.PermissionMapper.selectById - ==> Parameters: 368686096021852160(Long)
+2025-10-16 16:06:26.613 [http-nio-5770-exec-1] DEBUG d.o.i.m.PermissionMapper.selectById - <==      Total: 1
+2025-10-16 16:06:26.622 [http-nio-5770-exec-1] DEBUG d.o.iems.mapper.OperatorMapper.count - ==>  Preparing: SELECT COUNT(1) FROM operators
+2025-10-16 16:06:26.624 [http-nio-5770-exec-1] DEBUG d.o.iems.mapper.OperatorMapper.count - ==> Parameters: 
+2025-10-16 16:06:26.625 [http-nio-5770-exec-1] DEBUG d.o.iems.mapper.OperatorMapper.count - <==      Total: 1
+2025-10-16 16:06:26.626 [http-nio-5770-exec-1] DEBUG d.o.iems.mapper.DeviceMapper.count - ==>  Preparing: SELECT COUNT(1) FROM devices
+2025-10-16 16:06:26.626 [http-nio-5770-exec-1] DEBUG d.o.iems.mapper.DeviceMapper.count - ==> Parameters: 
+2025-10-16 16:06:26.627 [http-nio-5770-exec-1] DEBUG d.o.iems.mapper.DeviceMapper.count - <==      Total: 1
+2025-10-16 16:06:27.912 [http-nio-5770-exec-6] DEBUG d.o.i.m.PermissionMapper.selectById - ==>  Preparing: SELECT * FROM permissions WHERE id = ?
+2025-10-16 16:06:27.913 [http-nio-5770-exec-6] DEBUG d.o.i.m.PermissionMapper.selectById - ==> Parameters: 368686096021852160(Long)
+2025-10-16 16:06:27.915 [http-nio-5770-exec-6] DEBUG d.o.i.m.PermissionMapper.selectById - <==      Total: 1
+2025-10-16 16:06:27.919 [http-nio-5770-exec-6] DEBUG d.o.i.m.PermissionMapper.selectById - ==>  Preparing: SELECT * FROM permissions WHERE id = ?
+2025-10-16 16:06:27.920 [http-nio-5770-exec-6] DEBUG d.o.i.m.PermissionMapper.selectById - ==> Parameters: 368686096021852160(Long)
+2025-10-16 16:06:27.922 [http-nio-5770-exec-6] DEBUG d.o.i.m.PermissionMapper.selectById - <==      Total: 1
+2025-10-16 16:06:29.089 [http-nio-5770-exec-10] DEBUG d.o.i.m.PermissionMapper.selectById - ==>  Preparing: SELECT * FROM permissions WHERE id = ?
+2025-10-16 16:06:29.090 [http-nio-5770-exec-10] DEBUG d.o.i.m.PermissionMapper.selectById - ==> Parameters: 368686096021852160(Long)
+2025-10-16 16:06:29.092 [http-nio-5770-exec-10] DEBUG d.o.i.m.PermissionMapper.selectById - <==      Total: 1
+2025-10-16 16:06:29.096 [http-nio-5770-exec-10] DEBUG d.o.i.m.PermissionMapper.selectById - ==>  Preparing: SELECT * FROM permissions WHERE id = ?
+2025-10-16 16:06:29.097 [http-nio-5770-exec-10] DEBUG d.o.i.m.PermissionMapper.selectById - ==> Parameters: 368686096021852160(Long)
+2025-10-16 16:06:29.098 [http-nio-5770-exec-10] DEBUG d.o.i.m.PermissionMapper.selectById - <==      Total: 1
+2025-10-16 16:06:29.100 [http-nio-5770-exec-10] DEBUG d.o.iems.mapper.OperatorMapper.count - ==>  Preparing: SELECT COUNT(1) FROM operators
+2025-10-16 16:06:29.100 [http-nio-5770-exec-10] DEBUG d.o.iems.mapper.OperatorMapper.count - ==> Parameters: 
+2025-10-16 16:06:29.101 [http-nio-5770-exec-10] DEBUG d.o.iems.mapper.OperatorMapper.count - <==      Total: 1
+2025-10-16 16:06:29.102 [http-nio-5770-exec-10] DEBUG d.o.iems.mapper.DeviceMapper.count - ==>  Preparing: SELECT COUNT(1) FROM devices
+2025-10-16 16:06:29.102 [http-nio-5770-exec-10] DEBUG d.o.iems.mapper.DeviceMapper.count - ==> Parameters: 
+2025-10-16 16:06:29.104 [http-nio-5770-exec-10] DEBUG d.o.iems.mapper.DeviceMapper.count - <==      Total: 1
+2025-10-16 16:06:52.146 [http-nio-5770-exec-4] DEBUG d.o.i.m.PermissionMapper.selectById - ==>  Preparing: SELECT * FROM permissions WHERE id = ?
+2025-10-16 16:06:52.147 [http-nio-5770-exec-4] DEBUG d.o.i.m.PermissionMapper.selectById - ==> Parameters: 368686096021852160(Long)
+2025-10-16 16:06:52.149 [http-nio-5770-exec-4] DEBUG d.o.i.m.PermissionMapper.selectById - <==      Total: 1
+2025-10-16 16:06:52.156 [http-nio-5770-exec-4] DEBUG d.o.i.m.PermissionMapper.selectById - ==>  Preparing: SELECT * FROM permissions WHERE id = ?
+2025-10-16 16:06:52.157 [http-nio-5770-exec-4] DEBUG d.o.i.m.PermissionMapper.selectById - ==> Parameters: 368686096021852160(Long)
+2025-10-16 16:06:52.158 [http-nio-5770-exec-4] DEBUG d.o.i.m.PermissionMapper.selectById - <==      Total: 1
+2025-10-16 16:06:52.823 [http-nio-5770-exec-8] DEBUG d.o.i.m.PermissionMapper.selectById - ==>  Preparing: SELECT * FROM permissions WHERE id = ?
+2025-10-16 16:06:52.824 [http-nio-5770-exec-8] DEBUG d.o.i.m.PermissionMapper.selectById - ==> Parameters: 368686096021852160(Long)
+2025-10-16 16:06:52.825 [http-nio-5770-exec-8] DEBUG d.o.i.m.PermissionMapper.selectById - <==      Total: 1
+2025-10-16 16:06:52.832 [http-nio-5770-exec-8] DEBUG d.o.i.m.PermissionMapper.selectById - ==>  Preparing: SELECT * FROM permissions WHERE id = ?
+2025-10-16 16:06:52.833 [http-nio-5770-exec-8] DEBUG d.o.i.m.PermissionMapper.selectById - ==> Parameters: 368686096021852160(Long)
+2025-10-16 16:06:52.835 [http-nio-5770-exec-8] DEBUG d.o.i.m.PermissionMapper.selectById - <==      Total: 1
+2025-10-16 16:06:52.854 [http-nio-5770-exec-8] DEBUG d.o.iems.mapper.DeviceMapper.list - ==>  Preparing: SELECT * FROM devices LIMIT ? OFFSET ?
+2025-10-16 16:06:52.855 [http-nio-5770-exec-8] DEBUG d.o.iems.mapper.DeviceMapper.list - ==> Parameters: 11(Integer), 0(Integer)
+2025-10-16 16:06:52.857 [http-nio-5770-exec-8] DEBUG d.o.iems.mapper.DeviceMapper.list - <==      Total: 1
+2025-10-16 16:06:53.707 [http-nio-5770-exec-1] DEBUG d.o.i.m.PermissionMapper.selectById - ==>  Preparing: SELECT * FROM permissions WHERE id = ?
+2025-10-16 16:06:53.707 [http-nio-5770-exec-1] DEBUG d.o.i.m.PermissionMapper.selectById - ==> Parameters: 368686096021852160(Long)
+2025-10-16 16:06:53.710 [http-nio-5770-exec-1] DEBUG d.o.i.m.PermissionMapper.selectById - <==      Total: 1
+2025-10-16 16:06:53.717 [http-nio-5770-exec-1] DEBUG d.o.i.m.PermissionMapper.selectById - ==>  Preparing: SELECT * FROM permissions WHERE id = ?
+2025-10-16 16:06:53.718 [http-nio-5770-exec-1] DEBUG d.o.i.m.PermissionMapper.selectById - ==> Parameters: 368686096021852160(Long)
+2025-10-16 16:06:53.723 [http-nio-5770-exec-1] DEBUG d.o.i.m.PermissionMapper.selectById - <==      Total: 1

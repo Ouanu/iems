@@ -1,19 +1,29 @@
 spring:
   datasource:
-    url: jdbc:mysql://${MYSQL_HOST:localhost}:${MYSQL_PORT:3306}/${MYSQL_DATABASE:iems_prod}?useSSL=true&requireSSL=false&serverTimezone=UTC
+    url: jdbc:mysql://${MYSQL_HOST:localhost}:${MYSQL_PORT:3377}/${MYSQL_DATABASE:iems_prod}?useSSL=true&requireSSL=false&serverTimezone=UTC
     username: ${MYSQL_USER:iems}
     password: ${MYSQL_PASSWORD:CHANGE_ME_DB_PROD}
     driver-class-name: com.mysql.cj.jdbc.Driver
   data:
     mongodb:
-      uri: mongodb://${MONGO_INITDB_ROOT_USERNAME:mongo_prod}:${MONGO_INITDB_ROOT_PASSWORD:CHANGE_ME_MONGO_PROD}@${MONGO_HOST:localhost}:${MONGO_PORT:27017}/${MONGO_DATABASE:admin}?authSource=admin
+      uri: mongodb://${MONGO_INITDB_ROOT_USERNAME:mongo_prod}:${MONGO_INITDB_ROOT_PASSWORD:CHANGE_ME_MONGO_PROD}@${MONGO_HOST:localhost}:${MONGO_PORT:27818}/${MONGO_DATABASE:admin}?authSource=admin
+    redis:
+      host: ${REDIS_HOST:redis}
+      port: ${REDIS_PORT:6880}
+      password: ${REDIS_PASSWORD:redis_prod_pwd} # Add Redis password
+      timeout: 2s # Use standard duration format
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 0
   sql:
     init:
       mode: never
 
 # 生产环境建议的安全/性能设置（示例）
 server:
-  port: ${SERVER_PORT:8080}
+  port: ${SERVER_PORT:5770}
 
 app:
   environment: prod
@@ -23,14 +33,3 @@ logging:
   level:
     root: INFO
     dev.ouanu.iems: INFO
-  data:
-    redis:
-      host: ${REDIS_HOST:localhost}
-      port: ${REDIS_PORT:6379}
-      password: ${REDIS_PASSWORD:} # Add Redis password
-      timeout: 2s # Use standard duration format
-      lettuce:
-        pool:
-          max-active: 8
-          max-idle: 8
-          min-idle: 0

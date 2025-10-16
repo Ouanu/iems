@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import dev.ouanu.iems.annotation.ActionLog;
 import dev.ouanu.iems.dto.AdminResetPasswordDTO;
 import dev.ouanu.iems.dto.BatchUpdateOperatorsRequest;
 import dev.ouanu.iems.dto.ChangePasswordDTO;
@@ -46,6 +47,7 @@ public class OperatorController {
     // ----------------- Operator management -----------------
 
     // Create operator (admin)
+    @ActionLog("创建设备")
     @PreAuthorize("hasAuthority('operator:write')")
     @PostMapping(path = "/admin/operators", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<OperatorVO> createOperator(@Valid @RequestBody RegisterOperatorDTO dto) {
@@ -60,6 +62,7 @@ public class OperatorController {
     }
 
     // Admin update profile
+    @ActionLog("更新操作员")
     @PreAuthorize("hasAuthority('operator:write')")
     @PutMapping(path = "/admin/operators/{id}", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<OperatorVO> adminUpdateProfile(@PathVariable("id") Long id,
@@ -74,6 +77,8 @@ public class OperatorController {
         }
     }
 
+    // Admin batch update operators
+    @ActionLog("批量更新操作员")
     @PreAuthorize("hasAuthority('operator:write')")
     @PutMapping(path = "/admin/operators/batch", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.TEXT_PLAIN_VALUE)
     public ResponseEntity<String> batchUpdateOperators(@Valid @RequestBody BatchUpdateOperatorsRequest request) {
@@ -88,6 +93,7 @@ public class OperatorController {
     }
 
     // Admin reset password
+    @ActionLog("重置操作员密码")
     @PreAuthorize("hasAuthority('operator:write')")
     @PostMapping(path = "/operators/{id}/password/reset", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.TEXT_PLAIN_VALUE)
     public ResponseEntity<String> adminResetPassword(@PathVariable("id") Long id,
@@ -105,6 +111,7 @@ public class OperatorController {
     }
 
     // Operator update own profile
+    @ActionLog("更新个人信息")
     @PreAuthorize("hasAuthority('operator:write')")
     @PutMapping(path = "/admin/operators/me", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<OperatorVO> updateProfile(@Valid @RequestBody UpdateOperatorDTO dto) {
@@ -132,7 +139,7 @@ public class OperatorController {
         }
     }
 
-    
+    @ActionLog("操作员登录")
     @PostMapping(path = "/auth/login", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<TokenVO> login(@Valid @RequestBody LoginRequest req) {
         return operatorService.login(req.phone, req.password);
@@ -145,12 +152,15 @@ public class OperatorController {
             this.refreshToken = refreshToken;
         }
     }
-
+    @ActionLog("操作员刷新令牌")
+    @PreAuthorize("hasAuthority('operator:write')")
     @PostMapping(path = "/auth/refresh", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<TokenVO> refresh(@Valid @RequestBody RefreshRequest req) {
         return operatorService.refreshToken(req.refreshToken);
     }
 
+    @ActionLog("操作员登出")
+    @PreAuthorize("hasAuthority('operator:write')")
     @PostMapping(path = "/auth/logout", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.TEXT_PLAIN_VALUE)
     public ResponseEntity<String> logout(@Valid @RequestBody OperatorLogoutDTO dto) {
         return operatorService.logout(dto);
@@ -165,12 +175,15 @@ public class OperatorController {
         }
     }
 
-    
+    @ActionLog("撤销操作员刷新令牌")
+    @PreAuthorize("hasAuthority('operator:write')")
     @DeleteMapping(path = "/admin/tokens/refresh", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.TEXT_PLAIN_VALUE)
     public ResponseEntity<String> revokeRefresh(@Valid @RequestBody SimpleTokenRequest req) {
         return operatorService.revokeRefreshToken(req.token);
     }
 
+    @ActionLog("撤销操作员访问令牌")
+    @PreAuthorize("hasAuthority('operator:write')")
     @PostMapping(path = "/admin/tokens/access/revoke", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.TEXT_PLAIN_VALUE)
     public ResponseEntity<String> revokeAccess(@Valid @RequestBody SimpleTokenRequest req) {
         return operatorService.revokeAccessToken(req.token);
@@ -178,6 +191,7 @@ public class OperatorController {
 
     // ----------------- Password -----------------
 
+    @ActionLog("修改密码")
     @PreAuthorize("hasAuthority('operator:write')")
     @PostMapping(path = "/admin/operators/password/change", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.TEXT_PLAIN_VALUE)
     public ResponseEntity<String> changePassword(@Valid @RequestBody ChangePasswordDTO dto) {
@@ -210,6 +224,7 @@ public class OperatorController {
     }
 
     // Delete operator (admin)
+    @ActionLog("删除操作员")
     @PreAuthorize("hasAuthority('operator:delete')")
     @DeleteMapping(path = "/admin/operators/{id}", produces = MediaType.TEXT_PLAIN_VALUE)
     public ResponseEntity<String> deleteOperator(@PathVariable("id") Long id) {
