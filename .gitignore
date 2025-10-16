@@ -5,6 +5,7 @@ target/
 !**/src/test/**/target/
 storage/apks/**
 storage/icons/**
+storage/logs/**
 
 ### STS ###
 .apt_generated

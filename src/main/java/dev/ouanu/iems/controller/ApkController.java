@@ -75,13 +75,26 @@ public class ApkController {
 
     @PreAuthorize("hasAuthority('app:read')")
     @GetMapping("/summary")
-    public ResponseEntity<List<ApkVO>> listApkSummaries(@RequestParam  int offset, @RequestParam int limit) {
+    public ResponseEntity<List<ApkVO>> listApkSummaries(@RequestParam String group, @RequestParam int offset,
+            @RequestParam int limit) {
         System.out.println("client ----------------" + offset + "  " + limit);
         String baseUrl = ServletUriComponentsBuilder.fromCurrentContextPath().build().toUriString();
-        List<ApkVO> summaries = apkService.queryApks(new ApkSearchCriteria(null, null, null, null, null, true, offset, limit)).stream()
+        List<ApkVO> summaries = apkService
+                .queryApks(new ApkSearchCriteria(null, null, null, null, group, true, offset, limit)).stream()
                 .map(apk -> ApkVO.fromEntity(apk, baseUrl))
                 .toList();
         return ResponseEntity.ok(summaries);
+    }
+
+    @PreAuthorize("hasAuthority('app:read')")
+    @GetMapping("/count")
+    public ResponseEntity<Long> countApks() {
+        try {
+            var ret = apkService.countApks();
+            return ResponseEntity.ok(ret);
+        } catch (Exception e) {
+            return ResponseEntity.ofNullable(null);
+        }
     }
 
     @PreAuthorize("hasAuthority('app:read')")
