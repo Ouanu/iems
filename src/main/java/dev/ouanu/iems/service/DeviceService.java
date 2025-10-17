@@ -87,7 +87,7 @@ public class DeviceService {
     }
 
     @Transactional
-    @CacheEvict(value = {"devices:list", "devices:byId", "devices:byUuid"}, key = "#id")
+    @CacheEvict(value = {"devices:list", "devices:byId", "devices:byUuid"}, allEntries = true)
     public Device updateDevice(Long id, UpdateDeviceDTO dto) {
         Device device = deviceMapper.selectById(id);
         if (device == null) {

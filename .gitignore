@@ -5,6 +5,10 @@ target/
 !**/src/test/**/target/
 storage/apks/**
 storage/icons/**
+storage/logs/**
+TESTING_CONCEPTS.md
+IEMS_INTERVIEW_PREP.md
+REDIS_USAGE.md
 
 ### STS ###
 .apt_generated
