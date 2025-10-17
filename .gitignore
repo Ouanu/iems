@@ -6,9 +6,12 @@ target/
 storage/apks/**
 storage/icons/**
 storage/logs/**
+<<<<<<< HEAD
 TESTING_CONCEPTS.md
 IEMS_INTERVIEW_PREP.md
 REDIS_USAGE.md
+=======
+>>>>>>> d66898f7f9617cbdc5e436d39bb264c877a2aa22
 
 ### STS ###
 .apt_generated

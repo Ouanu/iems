@@ -75,6 +75,12 @@ public class ApkService {
         return apkRepository.findById(id);
     }
 
+    
+    @Cacheable(value = "apks:count")
+    public Long countApks() {
+        return apkRepository.count();
+    }
+
     @Cacheable(value = "apks:query", key = "T(java.lang.String).valueOf(#criteria.hashCode())")
     public List<Apk> queryApks(ApkSearchCriteria criteria) {
         Query query = new Query();
@@ -110,7 +116,7 @@ public class ApkService {
     }
 
     @Transactional
-    @CacheEvict(value = { "apks:all", "apks:byId", "apks:query" }, allEntries = true)
+    @CacheEvict(value = { "apks:all", "apks:byId", "apks:query", "apks:count" }, allEntries = true)
     public void adminBatchUpdateApks(List<String> ids, String organization, String group) {
         if (ids == null || ids.isEmpty()) {
             throw new IllegalArgumentException("批量更新需要至少一个APK ID");
@@ -144,7 +150,7 @@ public class ApkService {
         }
     }
 
-    @CacheEvict(value = { "apks:all", "apks:byId", "apks:query" }, allEntries = true)
+    @CacheEvict(value = { "apks:all", "apks:byId", "apks:query", "apks:count" }, allEntries = true)
     public Apk processAndSaveApk(MultipartFile file, String organization, String group) throws IOException {
         // 1. Save uploaded file to a temporary location first.
         Path tempFile = Files.createTempFile("iems-upload-", ".apk");
@@ -239,7 +245,7 @@ public class ApkService {
         }
     }
 
-    @CacheEvict(value = { "apks:all", "apks:byId", "apks:query" }, allEntries = true)
+    @CacheEvict(value = { "apks:all", "apks:byId", "apks:query", "apks:count" }, allEntries = true)
     public Apk updateApk(String id, ApkUpdateRequest updateRequest) {
         Apk existingApk = apkRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException(APK_NOT_FOUND_MESSAGE + id));
@@ -250,13 +256,13 @@ public class ApkService {
         return apkRepository.save(existingApk);
     }
 
-    @CacheEvict(value = { "apks:all", "apks:byId", "apks:query" }, allEntries = true)
+    @CacheEvict(value = { "apks:all", "apks:byId", "apks:query", "apks:count" }, allEntries = true)
     public void deleteApk(String id) throws IOException {
         deleteApkById(id);
     }
 
     @Transactional
-    @CacheEvict(value = { "apks:all", "apks:byId", "apks:query" }, allEntries = true)
+    @CacheEvict(value = { "apks:all", "apks:byId", "apks:query", "apks:count" }, allEntries = true)
     public void deleteApks(List<String> ids) throws IOException {
         if (ids == null || ids.isEmpty()) {
             throw new IllegalArgumentException("批量删除需要至少一个APK ID");
