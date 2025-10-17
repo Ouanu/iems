@@ -879,6 +879,17 @@
 
             try {
                 await apiFetch(url, { method, body: JSON.stringify(body) });
+
+                // ---- 缓存失效：保存成功后清除相关缓存，确保下次编辑获得最新数据 ----
+                if (isEdit) {
+                    // 移除单条缓存，避免下次打开编辑仍显示旧数据
+                    try { delete deviceCache[id]; } catch (e) { deviceCache = {}; }
+                } else {
+                    // 新建时清空缓存（可选）
+                    deviceCache = {};
+                }
+                // -----------------------------------------------------------------
+
                 bootstrap.Modal.getInstance(document.getElementById('deviceModal')).hide();
                 fetchDevices(isEdit ? currentPage : 0);
             } catch (error) {

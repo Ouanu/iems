@@ -242,8 +242,8 @@ public class DeviceController {
         var updateDto = new UpdateDeviceDTO(dto.model, dto.brand, dto.serialno, dto.androidVersion,
                 dto.appVersion, dto.romVersion, true, false);
         try {
-            String result = deviceService.updateMyProfile(updateDto);
-            return ResponseEntity.ok(result);
+            DeviceVO result = deviceService.updateMyProfile(updateDto);
+            return ResponseEntity.ok(result.toString());
         } catch (SecurityException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
         } catch (IllegalArgumentException e) {

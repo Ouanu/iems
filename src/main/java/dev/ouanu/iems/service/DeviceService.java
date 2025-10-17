@@ -14,6 +14,7 @@ import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -160,8 +161,12 @@ public class DeviceService {
     }
 
     @Transactional
-    @CacheEvict(value = {"devices:byId", "devices:byUuid"}, key = "#result.id")
-    public String updateMyProfile(UpdateDeviceDTO dto) {
+    @Caching(evict = {
+        @CacheEvict(value = "devices:byId", key = "#result.id"),
+        @CacheEvict(value = "devices:byUuid", key = "#result.uuid"),
+        @CacheEvict(value = "devices:list", allEntries = true)
+    })
+    public DeviceVO updateMyProfile(UpdateDeviceDTO dto) {
         var auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null || auth.getPrincipal() == null || !(auth.getPrincipal() instanceof Long)) {
             throw new SecurityException("Unauthorized");
@@ -184,7 +189,20 @@ public class DeviceService {
         if (ret != 1) {
             throw new IllegalStateException("Failed to update device");
         }
-        return "Device updated successfully";
+        return DeviceVO.fromEntity(device);
+    }
+
+    // 新增：供外部（例如设备上传逻辑）显式失效缓存
+    public void evictDeviceCaches(Long id, String uuid) {
+        if (cacheManager == null) return;
+        Cache listCache = cacheManager.getCache("devices:list");
+        if (listCache != null) listCache.clear();
+
+        Cache byIdCache = cacheManager.getCache("devices:byId");
+        if (byIdCache != null && id != null) byIdCache.evict(id);
+
+        Cache byUuidCache = cacheManager.getCache("devices:byUuid");
+        if (byUuidCache != null && uuid != null) byUuidCache.evict(uuid);
     }
 
     @Transactional(readOnly = true)

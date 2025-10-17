@@ -79,7 +79,6 @@ public class ApkController {
             @RequestParam(required = false) String group,
             @RequestParam int offset,
             @RequestParam int limit) {
-        System.out.println("client ----------------" + offset + "  " + limit);
         String baseUrl = ServletUriComponentsBuilder.fromCurrentContextPath().build().toUriString();
         List<ApkVO> summaries = apkService
                 .queryApks(new ApkSearchCriteria(null, null, null, null, group, true, offset, limit)).stream()
@@ -96,7 +95,6 @@ public class ApkController {
             return ResponseEntity.ok(ret);
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }
 
